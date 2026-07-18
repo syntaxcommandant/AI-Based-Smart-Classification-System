@@ -15,10 +15,14 @@ The model is built using Convolutional Neural Network (CNN) and deployed using F
 
 ## Technologies Used
 - Python
-- TensorFlow / Keras
+- TensorFlow / Keras - CNN model development
+- NumPy
+- PIL
+- Matplotlib
 - OpenCV
 - Flask
 - HTML
+- CSS
 
 ## Project Structure
 
