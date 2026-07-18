@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Waste Classification</title>
+</head>
+<body>
+
+    <h1>AI-Based Smart Waste Classification System</h1>
+
+    <form action="/predict" method="POST" enctype="multipart/form-data">
+
+        <input type="file" name="file" required>
+
+        <br><br>
+
+        <input type="submit" value="Predict">
+
+    </form>
+
+    {% if prediction %}
+        <h2>Prediction: {{ prediction }}</h2>
+    {% endif %}
+
+</body>
+</html>
