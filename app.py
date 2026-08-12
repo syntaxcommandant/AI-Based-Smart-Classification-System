@@ -21,13 +21,35 @@ def predict():
         img_array = img_array / 255.0
 
         prediction = model.predict(img_array)
+        print("Prediction value:",prediction)
 
         if prediction[0][0] > 0.5:
             result = "Wet Waste"
         else:
             result = "Dry Waste"
+    eco_guide = {
+    "Wet Waste": {
+        "bin": "Green Bin",
+        "compost": "Yes",
+        "recycle": "No",
+        "tip": "Kitchen waste can be composted to make natural fertilizer."
+    },
 
-    return render_template("index.html", prediction=result)
+    "Dry Waste": {
+        "bin": "Blue Bin",
+        "compost": "No",
+        "recycle": "Yes",
+        "tip": "Clean recyclable items before placing them in the recycling bin."
+    }
+}
+    guide = eco_guide[result]
+
+
+    return render_template(
+    "index.html",
+    prediction=result,
+    guide=guide
+)
 if __name__ == "__main__":
     app.run(debug=True)
 
