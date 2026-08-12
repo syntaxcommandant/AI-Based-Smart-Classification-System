@@ -18,8 +18,20 @@
     </form>
 
     {% if prediction %}
-        <h2>Prediction: {{ prediction }}</h2>
-    {% endif %}
+
+<h2>Prediction: {{ prediction }}</h2>
+
+<h3>AI Eco Guide</h3>
+
+<p><b>Disposal Bin:</b> {{ guide.bin }}</p>
+
+<p><b>Compostable:</b> {{ guide.compost }}</p>
+
+<p><b>Recyclable:</b> {{ guide.recycle }}</p>
+
+<p><b>Eco Tip:</b> {{ guide.tip }}</p>
+
+{% endif %}
 
 </body>
 </html>
