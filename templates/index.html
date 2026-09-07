@@ -1,2029 +1,1439 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>SmartWaste AI | Intelligent Waste Classification</title>
-
+<title>EcoSort AI | Smart Waste Classification</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet">
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 
 <style>
 
+:root{
+    --bg:#050b08;
+    --bg2:#09130e;
+    --card:rgba(255,255,255,.055);
+    --card2:rgba(255,255,255,.08);
 
-:root {
---bg: #06100c;
---bg-light: #0a1711;
+    --green:#35ee79;
+    --green2:#19c979;
+    --mint:#9affc0;
+    --teal:#18d4ae;
 
---green: #32e875;
---green-light: #8cffb5;
---teal: #16c79a;
+    --white:#f5fff8;
+    --text:#dcebe2;
+    --muted:#81958a;
 
---white: #ffffff;
---text: #e9f5ee;
---muted: #8ca398;
+    --border:rgba(255,255,255,.09);
+    --green-border:rgba(53,238,121,.22);
 
---glass: rgba(255, 255, 255, 0.055);
---glass-hover: rgba(255, 255, 255, 0.09);
+    --shadow:0 25px 80px rgba(0,0,0,.42);
 
---border: rgba(255, 255, 255, 0.10);
-
---shadow:
-    0 25px 80px rgba(0, 0, 0, 0.45);
-
---radius: 24px;
-
+    --radius:22px;
 }
 
-
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  }
-
-html {
-scroll-behavior: smooth;
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
-body {
-min-height: 100vh;
-
-font-family: "Inter", "Segoe UI", sans-serif;
-
-color: var(--text);
-
-background:
-    radial-gradient(
-        circle at 10% 10%,
-        rgba(50, 232, 117, 0.12),
-        transparent 30%
-    ),
-    radial-gradient(
-        circle at 90% 25%,
-        rgba(22, 199, 154, 0.10),
-        transparent 30%
-    ),
-    radial-gradient(
-        circle at 50% 100%,
-        rgba(30, 180, 100, 0.08),
-        transparent 35%
-    ),
-    var(--bg);
-
-overflow-x: hidden;
-
+html{
+    scroll-behavior:smooth;
 }
 
+body{
+    min-height:100vh;
+    font-family:"Inter",sans-serif;
+    color:var(--text);
 
+    background:
+        radial-gradient(circle at 10% 0%,rgba(53,238,121,.12),transparent 28%),
+        radial-gradient(circle at 90% 15%,rgba(24,212,174,.09),transparent 25%),
+        radial-gradient(circle at 50% 80%,rgba(30,190,110,.06),transparent 35%),
+        var(--bg);
 
-.background-grid {
-position: fixed;
-inset: 0;
-
-pointer-events: none;
-
-background-image:
-    linear-gradient(
-        rgba(255,255,255,0.018) 1px,
-        transparent 1px
-    ),
-    linear-gradient(
-        90deg,
-        rgba(255,255,255,0.018) 1px,
-        transparent 1px
-    );
-
-background-size: 60px 60px;
-
-mask-image: linear-gradient(
-    to bottom,
-    black,
-    transparent 85%
-);
-
-z-index: -3;
-
+    overflow-x:hidden;
 }
 
+/* BACKGROUND */
 
-.cursor-glow {
-position: fixed;
+.grid{
+    position:fixed;
+    inset:0;
+    z-index:-5;
+    pointer-events:none;
 
-width: 280px;
-height: 280px;
+    background-image:
+        linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
 
-border-radius: 50%;
+    background-size:55px 55px;
 
-background:
-    radial-gradient(
-        circle,
-        rgba(50, 232, 117, 0.08),
-        transparent 70%
-    );
-
-transform: translate(-50%, -50%);
-
-pointer-events: none;
-
-z-index: -1;
-
-transition:
-    left 0.2s ease,
-    top 0.2s ease;
-
+    mask-image:linear-gradient(to bottom,#000,transparent 90%);
 }
 
+.glow{
+    position:fixed;
+    width:380px;
+    height:380px;
+    border-radius:50%;
 
+    background:radial-gradient(circle,rgba(53,238,121,.09),transparent 68%);
 
-.particles span {
-position: fixed;
-
-width: 5px;
-height: 5px;
-
-border-radius: 50%;
-
-background: var(--green);
-
-opacity: 0.35;
-
-pointer-events: none;
-
-animation: particleFloat 12s linear infinite;
-
-z-index: -2;
-
+    transform:translate(-50%,-50%);
+    pointer-events:none;
+    z-index:-2;
 }
 
-.particles span:nth-child(1) {
-left: 8%;
-animation-delay: 0s;
+.orb{
+    position:fixed;
+    width:5px;
+    height:5px;
+    background:var(--green);
+    border-radius:50%;
+    opacity:.25;
+    pointer-events:none;
+    z-index:-1;
+
+    animation:float 12s linear infinite;
 }
 
-.particles span:nth-child(2) {
-left: 22%;
-animation-delay: 2s;
+.orb:nth-child(1){left:10%;animation-delay:0s}
+.orb:nth-child(2){left:25%;animation-delay:3s}
+.orb:nth-child(3){left:43%;animation-delay:5s}
+.orb:nth-child(4){left:61%;animation-delay:2s}
+.orb:nth-child(5){left:78%;animation-delay:6s}
+.orb:nth-child(6){left:92%;animation-delay:4s}
+
+@keyframes float{
+    from{
+        transform:translateY(110vh);
+        opacity:0;
+    }
+    20%{opacity:.3}
+    80%{opacity:.2}
+    to{
+        transform:translateY(-10vh) translateX(60px);
+        opacity:0;
+    }
 }
 
-.particles span:nth-child(3) {
-left: 37%;
-animation-delay: 5s;
+/* NAVBAR */
+
+.navbar{
+    position:sticky;
+    top:15px;
+    z-index:100;
+
+    width:min(1180px,calc(100% - 30px));
+    margin:15px auto 0;
+
+    height:64px;
+    padding:0 17px 0 20px;
+
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+
+    background:rgba(7,17,12,.76);
+    backdrop-filter:blur(22px);
+
+    border:1px solid var(--border);
+    border-radius:18px;
+
+    box-shadow:0 15px 45px rgba(0,0,0,.25);
 }
 
-.particles span:nth-child(4) {
-left: 51%;
-animation-delay: 1s;
+.logo{
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    font-weight:700;
+    color:white;
 }
 
-.particles span:nth-child(5) {
-left: 66%;
-animation-delay: 4s;
+.logo-icon{
+    width:38px;
+    height:38px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:12px;
+
+    background:linear-gradient(135deg,var(--green),var(--teal));
+
+    color:#042313;
+    font-size:20px;
+
+    box-shadow:0 0 25px rgba(53,238,121,.2);
 }
 
-.particles span:nth-child(6) {
-left: 76%;
-animation-delay: 7s;
+.logo b{
+    color:var(--green);
 }
 
-.particles span:nth-child(7) {
-left: 88%;
-animation-delay: 3s;
+.nav-links{
+    display:flex;
+    gap:30px;
 }
 
-.particles span:nth-child(8) {
-left: 95%;
-animation-delay: 6s;
+.nav-links a{
+    color:var(--muted);
+    text-decoration:none;
+    font-size:13px;
+    font-weight:500;
+
+    transition:.25s;
 }
 
-@keyframes particleFloat {
-
-0% {
-    transform:
-        translateY(110vh)
-        scale(0);
+.nav-links a:hover{
+    color:white;
 }
 
-20% {
-    opacity: 0.4;
+.online{
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    padding:8px 12px;
+
+    border-radius:20px;
+
+    background:rgba(53,238,121,.06);
+    border:1px solid rgba(53,238,121,.14);
+
+    color:var(--mint);
+
+    font-size:11px;
+    font-weight:700;
 }
 
-80% {
-    opacity: 0.25;
+.online-dot{
+    width:7px;
+    height:7px;
+
+    border-radius:50%;
+    background:var(--green);
+
+    box-shadow:0 0 12px var(--green);
+
+    animation:pulse 1.8s infinite;
 }
 
-100% {
-    transform:
-        translateY(-10vh)
-        translateX(80px)
-        scale(1);
+@keyframes pulse{
+    50%{
+        opacity:.4;
+        transform:scale(.7);
+    }
 }
 
+/* HERO */
+
+.hero{
+    width:min(1000px,calc(100% - 30px));
+    margin:75px auto 45px;
+    text-align:center;
 }
 
+.badge{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
 
+    padding:7px 13px;
 
-.navbar {
+    border-radius:50px;
 
-position: sticky;
+    background:rgba(53,238,121,.06);
+    border:1px solid rgba(53,238,121,.17);
 
-top: 20px;
+    color:var(--mint);
 
-width: min(1150px, calc(100% - 40px));
-
-margin: 20px auto 0;
-
-padding: 13px 18px;
-
-display: flex;
-
-align-items: center;
-
-justify-content: space-between;
-
-background:
-    rgba(8, 20, 14, 0.72);
-
-backdrop-filter: blur(20px);
-
-border: 1px solid var(--border);
-
-border-radius: 18px;
-
-box-shadow:
-    0 15px 50px rgba(0,0,0,0.25);
-
-z-index: 100;
-
-animation: navEnter 0.8s ease;
-
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:1.4px;
 }
 
-@keyframes navEnter {
-
-from {
-    opacity: 0;
-    transform: translateY(-20px);
+.badge-dot{
+    width:6px;
+    height:6px;
+    border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 10px var(--green);
 }
 
-to {
-    opacity: 1;
-    transform: translateY(0);
+.hero h1{
+    margin-top:20px;
+
+    font-family:"Space Grotesk",sans-serif;
+
+    font-size:clamp(42px,6vw,72px);
+    line-height:1;
+    letter-spacing:-3px;
+
+    color:white;
 }
 
-}
+.hero h1 span{
+    display:block;
 
-.logo {
-
-display: flex;
-
-align-items: center;
-
-gap: 10px;
-
-font-weight: 700;
-
-color: white;
-
-}
-
-.logo-icon {
-
-width: 38px;
-height: 38px;
-
-display: grid;
-
-place-items: center;
-
-border-radius: 12px;
-
-background:
-    linear-gradient(
-        135deg,
-        var(--green),
-        var(--teal)
-    );
-
-color: #052d19;
-
-font-size: 21px;
-
-box-shadow:
-    0 0 25px rgba(50,232,117,0.25);
-
-}
-
-.logo b {
-color: var(--green);
-}
-
-nav {
-
-display: flex;
-
-gap: 30px;
-
-}
-
-nav a {
-
-color: var(--muted);
-
-text-decoration: none;
-
-font-size: 14px;
-
-font-weight: 500;
-
-transition: 0.25s;
-
-}
-
-nav a:hover {
-
-color: white;
-
-transform: translateY(-2px);
-
-}
-
-.ai-status {
-
-display: flex;
-
-align-items: center;
-
-gap: 7px;
-
-padding: 8px 12px;
-
-border-radius: 20px;
-
-background: rgba(50,232,117,0.07);
-
-border: 1px solid rgba(50,232,117,0.12);
-
-color: var(--green-light);
-
-font-size: 12px;
-
-font-weight: 600;
-
-}
-
-.status-dot {
-
-width: 7px;
-height: 7px;
-
-border-radius: 50%;
-
-background: var(--green);
-
-box-shadow:
-    0 0 12px var(--green);
-
-animation: statusPulse 2s infinite;
-
-}
-
-@keyframes statusPulse {
-
-50% {
-    opacity: 0.4;
-    transform: scale(0.75);
-}
-
-}
-
-
-
-.hero {
-
-max-width: 850px;
-
-margin: 110px auto 70px;
-
-padding: 0 25px;
-
-text-align: center;
-
-animation: heroEnter 1s ease;
-
-}
-
-@keyframes heroEnter {
-
-from {
-    opacity: 0;
-    transform: translateY(30px);
-}
-
-to {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-}
-
-.hero-badge {
-
-display: inline-flex;
-
-align-items: center;
-
-gap: 8px;
-
-padding: 8px 14px;
-
-border-radius: 50px;
-
-border: 1px solid rgba(50,232,117,0.18);
-
-background: rgba(50,232,117,0.06);
-
-color: var(--green-light);
-
-font-size: 11px;
-
-font-weight: 700;
-
-letter-spacing: 1.3px;
-
-}
-
-.pulse-dot {
-
-width: 7px;
-height: 7px;
-
-border-radius: 50%;
-
-background: var(--green);
-
-box-shadow:
-    0 0 15px var(--green);
-
-animation: statusPulse 1.5s infinite;
-
-}
-
-.hero h1 {
-
-margin-top: 25px;
-
-font-size: clamp(44px, 7vw, 78px);
-
-line-height: 1.02;
-
-letter-spacing: -4px;
-
-font-weight: 800;
-
-color: white;
-
-}
-
-.hero h1 span {
-
-display: block;
-
-background:
-    linear-gradient(
+    background:linear-gradient(
         100deg,
-        #ffffff,
-        var(--green-light),
+        white,
+        var(--mint),
         var(--green)
     );
 
--webkit-background-clip: text;
-
-background-clip: text;
-
-color: transparent;
-
-background-size: 200%;
-
-animation: textFlow 5s ease infinite;
-
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
 }
 
-@keyframes textFlow {
+.hero p{
+    max-width:620px;
+    margin:20px auto;
 
-50% {
-    background-position: 100%;
+    color:var(--muted);
+
+    font-size:14px;
+    line-height:1.7;
 }
 
+.engine{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+
+    color:#a8b8af;
+    font-size:11px;
 }
 
-.hero-description {
-
-max-width: 620px;
-
-margin: 28px auto;
-
-color: var(--muted);
-
-line-height: 1.8;
-
-font-size: 16px;
-
+.engine span{
+    color:var(--green);
 }
 
-.engine-status {
+/* STATS */
 
-display: inline-flex;
+.stats{
+    width:min(1000px,calc(100% - 30px));
+    margin:0 auto 25px;
 
-gap: 8px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
 
-color: #a8b9af;
-
-font-size: 12px;
-
+    gap:12px;
 }
 
-.engine-status span {
-color: var(--green);
+.stat{
+    padding:16px 20px;
+
+    border:1px solid var(--border);
+    background:rgba(255,255,255,.035);
+
+    border-radius:16px;
+
+    display:flex;
+    align-items:center;
+    gap:13px;
 }
 
+.stat-icon{
+    width:38px;
+    height:38px;
 
+    display:grid;
+    place-items:center;
 
-.classifier-section {
+    border-radius:11px;
 
-width: min(850px, calc(100% - 30px));
+    background:rgba(53,238,121,.08);
 
-margin: auto;
-
+    font-size:18px;
 }
 
-.classifier-card {
-
-position: relative;
-
-padding: 38px;
-
-border-radius: var(--radius);
-
-background:
-    linear-gradient(
-        145deg,
-        rgba(255,255,255,0.075),
-        rgba(255,255,255,0.025)
-    );
-
-backdrop-filter: blur(25px);
-
-border: 1px solid var(--border);
-
-box-shadow: var(--shadow);
-
-overflow: hidden;
-
+.stat strong{
+    display:block;
+    color:white;
+    font-size:15px;
 }
 
-.classifier-card::before {
-
-content: "";
-
-position: absolute;
-
-width: 300px;
-height: 300px;
-
-right: -150px;
-top: -150px;
-
-background:
-    radial-gradient(
-        circle,
-        rgba(50,232,117,0.12),
-        transparent 70%
-    );
-
-pointer-events: none;
-
+.stat span{
+    color:var(--muted);
+    font-size:10px;
 }
 
-.card-header {
+/* MAIN CLASSIFIER */
 
-display: flex;
-
-align-items: center;
-
-gap: 16px;
-
-margin-bottom: 30px;
-
+.classifier{
+    width:min(1000px,calc(100% - 30px));
+    margin:auto;
 }
 
-.ai-icon {
+.classifier-card{
+    padding:24px;
 
-width: 52px;
-height: 52px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.075),
+            rgba(255,255,255,.025)
+        );
 
-display: grid;
+    backdrop-filter:blur(25px);
 
-place-items: center;
+    border:1px solid var(--border);
+    border-radius:var(--radius);
 
-border-radius: 16px;
+    box-shadow:var(--shadow);
+}
 
-background:
-    linear-gradient(
+.card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:20px;
+}
+
+.title-box{
+    display:flex;
+    align-items:center;
+    gap:13px;
+}
+
+.ai-icon{
+    width:46px;
+    height:46px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:14px;
+
+    background:linear-gradient(
         135deg,
-        rgba(50,232,117,0.18),
-        rgba(22,199,154,0.08)
+        rgba(53,238,121,.17),
+        rgba(24,212,174,.07)
     );
 
-border: 1px solid rgba(50,232,117,0.15);
+    border:1px solid rgba(53,238,121,.15);
 
-color: var(--green);
+    color:var(--green);
 
-font-size: 24px;
-
-box-shadow:
-    0 0 30px rgba(50,232,117,0.1);
-
+    font-size:21px;
 }
 
-.card-header h2 {
-
-color: white;
-
-font-size: 22px;
-
-margin-bottom: 5px;
-
+.title-box h2{
+    color:white;
+    font-family:"Space Grotesk",sans-serif;
+    font-size:19px;
 }
 
-.card-header p {
-
-color: var(--muted);
-
-font-size: 13px;
-
+.title-box p{
+    margin-top:3px;
+    color:var(--muted);
+    font-size:11px;
 }
 
+.model-tag{
+    padding:7px 10px;
 
+    border-radius:8px;
 
-.upload-area {
+    background:rgba(255,255,255,.045);
+    border:1px solid var(--border);
 
-position: relative;
+    color:#83958c;
 
-min-height: 270px;
-
-display: grid;
-
-place-items: center;
-
-border: 1px dashed rgba(140,255,181,0.28);
-
-border-radius: 20px;
-
-background:
-    rgba(0,0,0,0.12);
-
-overflow: hidden;
-
-transition:
-    border 0.3s,
-    background 0.3s,
-    transform 0.3s;
-
-cursor: pointer;
-
+    font-size:9px;
+    font-weight:700;
 }
 
-.upload-area::before {
+/* WORKSPACE */
 
-content: "";
-
-position: absolute;
-
-inset: -100%;
-
-background:
-    linear-gradient(
-        120deg,
-        transparent 40%,
-        rgba(50,232,117,0.08),
-        transparent 60%
-    );
-
-transform: rotate(10deg);
-
-animation: uploadShine 6s linear infinite;
-
+.workspace{
+    display:grid;
+    grid-template-columns:1.05fr .95fr;
+    gap:16px;
 }
 
-@keyframes uploadShine {
+/* UPLOAD */
 
-to {
-    transform:
-        translateX(60%)
-        rotate(10deg);
+.upload{
+    position:relative;
+
+    min-height:290px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border:1px dashed rgba(140,255,181,.25);
+
+    border-radius:18px;
+
+    background:rgba(0,0,0,.14);
+
+    overflow:hidden;
+
+    cursor:pointer;
+
+    transition:.3s;
 }
 
+.upload:hover{
+    border-color:rgba(53,238,121,.6);
+    background:rgba(53,238,121,.035);
 }
 
-.upload-area:hover {
-
-border-color: rgba(50,232,117,0.65);
-
-background:
-    rgba(50,232,117,0.035);
-
-transform: translateY(-2px);
-
+.upload.dragging{
+    border-color:var(--green);
+    background:rgba(53,238,121,.08);
+    transform:scale(1.01);
 }
 
-.upload-area.dragging {
+#fileInput{
+    position:absolute;
+    inset:0;
 
-border-color: var(--green);
+    width:100%;
+    height:100%;
 
-background:
-    rgba(50,232,117,0.08);
+    opacity:0;
 
-transform: scale(1.01);
+    cursor:pointer;
 
+    z-index:5;
 }
 
-#fileInput {
-
-position: absolute;
-
-inset: 0;
-
-width: 100%;
-height: 100%;
-
-opacity: 0;
-
-cursor: pointer;
-
-z-index: 5;
-
+.upload-content{
+    text-align:center;
+    z-index:2;
 }
 
-.upload-content {
+.upload-icon{
+    width:58px;
+    height:58px;
 
-position: relative;
+    margin:auto auto 14px;
 
-text-align: center;
+    display:grid;
+    place-items:center;
 
-z-index: 2;
+    border-radius:17px;
 
+    background:rgba(53,238,121,.08);
+    border:1px solid rgba(53,238,121,.15);
+
+    color:var(--green);
+
+    font-size:25px;
+
+    animation:bob 3s ease-in-out infinite;
 }
 
-.upload-icon {
-
-width: 64px;
-height: 64px;
-
-display: grid;
-
-place-items: center;
-
-margin: auto auto 16px;
-
-border-radius: 20px;
-
-background:
-    rgba(50,232,117,0.08);
-
-border: 1px solid rgba(50,232,117,0.15);
-
-color: var(--green);
-
-font-size: 30px;
-
-animation: uploadFloat 3s ease-in-out infinite;
-
+@keyframes bob{
+    50%{
+        transform:translateY(-6px);
+    }
 }
 
-@keyframes uploadFloat {
-
-50% {
-    transform: translateY(-7px);
+.upload-content h3{
+    color:white;
+    font-size:15px;
 }
 
+.upload-content p{
+    margin-top:6px;
+    color:var(--muted);
+    font-size:11px;
 }
 
-.upload-content h3 {
+.or{
+    display:block;
+    margin:8px 0;
 
-color: white;
-
-font-size: 17px;
-
-margin-bottom: 8px;
-
+    color:#52645b;
+    font-size:9px;
 }
 
-.upload-content p {
+.browse{
+    display:inline-block;
 
-color: var(--muted);
+    padding:8px 14px;
 
-font-size: 13px;
+    border-radius:8px;
 
+    background:rgba(53,238,121,.07);
+    border:1px solid rgba(53,238,121,.18);
+
+    color:var(--mint);
+
+    font-size:10px;
+    font-weight:700;
 }
 
-.or {
+.upload-content small{
+    display:block;
+    margin-top:12px;
 
-display: block;
+    color:#53645b;
 
-margin: 8px 0;
-
-color: #53655b;
-
-font-size: 11px;
-
+    font-size:9px;
+    letter-spacing:1px;
 }
 
-.browse-btn {
+/* PREVIEW */
 
-position: relative;
+.preview{
+    min-height:290px;
 
-padding: 8px 18px;
+    padding:13px;
 
-border-radius: 9px;
+    border-radius:18px;
 
-border: 1px solid rgba(50,232,117,0.22);
+    background:rgba(0,0,0,.17);
+    border:1px solid var(--border);
 
-background: rgba(50,232,117,0.07);
-
-color: var(--green-light);
-
-font-weight: 600;
-
-font-size: 12px;
-
-pointer-events: none;
-
+    display:none;
 }
 
-.upload-content small {
-
-display: block;
-
-margin-top: 13px;
-
-color: #53655b;
-
-font-size: 10px;
-
-letter-spacing: 1px;
-
+.preview.show{
+    display:flex;
+    flex-direction:column;
 }
 
+.preview-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
 
+    margin-bottom:9px;
 
-.preview-container {
+    color:#8fa096;
 
-display: none;
-
-margin-top: 18px;
-
-padding: 15px;
-
-background:
-    rgba(0,0,0,0.18);
-
-border: 1px solid var(--border);
-
-border-radius: 18px;
-
-animation: previewIn 0.4s ease;
-
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:1px;
 }
 
-.preview-container.show {
-display: block;
+.remove{
+    width:25px;
+    height:25px;
+
+    border:none;
+    border-radius:50%;
+
+    background:rgba(255,255,255,.07);
+
+    color:white;
+
+    cursor:pointer;
+
+    transition:.2s;
 }
 
-@keyframes previewIn {
-
-from {
-    opacity: 0;
-    transform: scale(0.96);
+.remove:hover{
+    background:rgba(255,70,70,.2);
+    transform:rotate(90deg);
 }
 
-to {
-    opacity: 1;
-    transform: scale(1);
+.image-box{
+    position:relative;
+
+    flex:1;
+    min-height:220px;
+
+    border-radius:13px;
+
+    overflow:hidden;
+
+    background:#020403;
 }
 
+.image-box img{
+    width:100%;
+    height:100%;
+
+    object-fit:cover;
+
+    display:block;
 }
 
-.preview-header {
+.scan{
+    position:absolute;
 
-display: flex;
+    left:0;
+    right:0;
 
-justify-content: space-between;
+    top:0;
 
-align-items: center;
+    height:2px;
 
-margin-bottom: 10px;
-
-color: var(--muted);
-
-font-size: 10px;
-
-font-weight: 700;
-
-letter-spacing: 1px;
-
-}
-
-.preview-header button {
-
-width: 25px;
-height: 25px;
-
-border: none;
-
-border-radius: 50%;
-
-background: rgba(255,255,255,0.08);
-
-color: white;
-
-cursor: pointer;
-
-font-size: 17px;
-
-transition: 0.2s;
-
-}
-
-.preview-header button:hover {
-
-background: rgba(255,80,80,0.25);
-
-transform: rotate(90deg);
-
-}
-
-.image-wrapper {
-
-position: relative;
-
-height: 260px;
-
-overflow: hidden;
-
-border-radius: 13px;
-
-background: black;
-
-}
-
-.image-wrapper img {
-
-width: 100%;
-height: 100%;
-
-object-fit: cover;
-
-display: block;
-
-}
-
-.scan-line {
-
-position: absolute;
-
-left: 0;
-right: 0;
-
-height: 2px;
-
-background:
-    linear-gradient(
+    background:linear-gradient(
         90deg,
         transparent,
         var(--green),
         transparent
     );
 
-box-shadow:
-    0 0 20px var(--green);
+    box-shadow:0 0 20px var(--green);
 
-opacity: 0;
-
-pointer-events: none;
-
+    opacity:0;
 }
 
-.preview-container.scanning .scan-line {
-
-opacity: 1;
-
-animation: scan 1.5s linear infinite;
-
+.preview.scanning .scan{
+    opacity:1;
+    animation:scan 1.4s linear infinite;
 }
 
-@keyframes scan {
-
-from {
-    top: 0;
+@keyframes scan{
+    to{
+        top:100%;
+    }
 }
 
-to {
-    top: 100%;
+.file-info{
+    display:flex;
+    justify-content:space-between;
+
+    gap:10px;
+
+    padding:9px 2px 0;
+
+    font-size:9px;
+    color:#718279;
 }
 
+#fileName{
+    color:var(--mint);
+
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
 }
 
-.file-info {
+/* BUTTON */
 
-display: flex;
+.analyze{
+    width:100%;
 
-justify-content: space-between;
+    margin-top:15px;
 
-gap: 10px;
+    height:52px;
 
-padding: 10px 3px 0;
+    border:none;
+    border-radius:13px;
 
-color: var(--muted);
-
-font-size: 11px;
-
-}
-
-#fileName {
-
-color: var(--green-light);
-
-overflow: hidden;
-
-text-overflow: ellipsis;
-
-white-space: nowrap;
-
-}
-
-
-
-
-.analyze-btn {
-
-position: relative;
-
-width: 100%;
-
-margin-top: 20px;
-
-padding: 17px;
-
-display: flex;
-
-align-items: center;
-
-justify-content: center;
-
-gap: 10px;
-
-border: none;
-
-border-radius: 14px;
-
-background:
-    linear-gradient(
+    background:linear-gradient(
         100deg,
-        #27d96a,
-        #12b886
+        #2de36f,
+        #13bd8b
     );
 
-color: #031b0e;
+    color:#032011;
 
-font-size: 14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
 
-font-weight: 800;
+    font-size:13px;
+    font-weight:800;
 
-cursor: pointer;
+    cursor:pointer;
 
-overflow: hidden;
+    box-shadow:0 12px 35px rgba(39,217,106,.15);
 
-box-shadow:
-    0 12px 35px rgba(39,217,106,0.18);
+    transition:.25s;
 
-transition:
-    transform 0.25s,
-    box-shadow 0.25s;
-
+    position:relative;
+    overflow:hidden;
 }
 
-.analyze-btn::before {
-
-content: "";
-
-position: absolute;
-
-width: 80px;
-height: 200%;
-
-background: rgba(255,255,255,0.25);
-
-transform: rotate(25deg) translateX(-150px);
-
-transition: 0.7s;
-
+.analyze:hover{
+    transform:translateY(-2px);
+    box-shadow:0 17px 40px rgba(39,217,106,.25);
 }
 
-.analyze-btn:hover::before {
-
-transform:
-    rotate(25deg)
-    translateX(700px);
-
+.analyze.loading{
+    pointer-events:none;
+    opacity:.75;
 }
 
-.analyze-btn:hover {
-
-transform: translateY(-3px);
-
-box-shadow:
-    0 18px 45px rgba(39,217,106,0.3);
-
+.arrow{
+    font-size:17px;
+    transition:.2s;
 }
 
-.analyze-btn:active {
-
-transform: scale(0.98);
-
+.analyze:hover .arrow{
+    transform:translateX(4px);
 }
 
-.analyze-btn.loading {
+/* RESULT */
 
-pointer-events: none;
-
-opacity: 0.8;
-
+#resultMount{
+    width:min(1000px,calc(100% - 30px));
+    margin:35px auto 0;
 }
 
-.button-icon {
-
-font-size: 16px;
-
+.result{
+    animation:resultIn .65s ease;
 }
 
-.button-arrow {
-
-font-size: 18px;
-
-transition: transform 0.25s;
-
+@keyframes resultIn{
+    from{
+        opacity:0;
+        transform:translateY(25px);
+    }
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
 }
 
-.analyze-btn:hover .button-arrow {
-
-transform: translateX(5px);
-
+.result-heading{
+    text-align:center;
+    margin-bottom:18px;
 }
 
+.success{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
 
+    padding:6px 10px;
 
-.results-section {
+    border-radius:50px;
 
-width: min(1000px, calc(100% - 30px));
+    background:rgba(53,238,121,.06);
+    border:1px solid rgba(53,238,121,.15);
 
-margin: 120px auto 0;
+    color:var(--mint);
 
-animation: resultEnter 0.8s ease;
-
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:1px;
 }
 
-@keyframes resultEnter {
+.result-heading h2{
+    margin-top:9px;
 
-from {
-    opacity: 0;
-    transform: translateY(30px);
+    color:white;
+
+    font-family:"Space Grotesk",sans-serif;
+    font-size:26px;
 }
 
-to {
-    opacity: 1;
-    transform: translateY(0);
+.result-heading p{
+    margin-top:4px;
+    color:var(--muted);
+    font-size:10px;
 }
 
+/* PREDICTION */
+
+.prediction{
+    position:relative;
+
+    padding:24px;
+
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+
+    align-items:center;
+    gap:18px;
+
+    border-radius:20px;
+
+    background:
+        linear-gradient(
+            110deg,
+            rgba(53,238,121,.12),
+            rgba(255,255,255,.035)
+        );
+
+    border:1px solid rgba(53,238,121,.17);
+
+    overflow:hidden;
 }
 
-.result-header {
+.prediction::before{
+    content:"";
 
-text-align: center;
+    position:absolute;
 
-margin-bottom: 35px;
+    width:300px;
+    height:300px;
 
-}
+    left:-170px;
+    top:-170px;
 
-.complete-badge {
-
-display: inline-flex;
-
-gap: 7px;
-
-align-items: center;
-
-padding: 7px 12px;
-
-border-radius: 50px;
-
-background: rgba(50,232,117,0.07);
-
-border: 1px solid rgba(50,232,117,0.15);
-
-color: var(--green-light);
-
-font-size: 10px;
-
-font-weight: 800;
-
-letter-spacing: 1px;
-
-}
-
-.result-header h2 {
-
-margin-top: 16px;
-
-font-size: 32px;
-
-color: white;
-
-}
-
-.result-header p {
-
-margin-top: 8px;
-
-color: var(--muted);
-
-font-size: 13px;
-
-}
-
-
-
-.prediction-card {
-
-position: relative;
-
-display: flex;
-
-align-items: center;
-
-gap: 25px;
-
-padding: 35px;
-
-border-radius: 24px;
-
-overflow: hidden;
-
-background:
-    linear-gradient(
-        120deg,
-        rgba(50,232,117,0.12),
-        rgba(255,255,255,0.035)
-    );
-
-border: 1px solid rgba(50,232,117,0.18);
-
-box-shadow:
-    0 20px 60px rgba(0,0,0,0.3);
-
-}
-
-.prediction-glow {
-
-position: absolute;
-
-width: 300px;
-height: 300px;
-
-left: -150px;
-top: -150px;
-
-background:
-    radial-gradient(
+    background:radial-gradient(
         circle,
-        rgba(50,232,117,0.18),
+        rgba(53,238,121,.18),
         transparent 70%
     );
-
-animation: glowMove 5s ease-in-out infinite;
-
 }
 
-@keyframes glowMove {
+.check{
+    position:relative;
 
-50% {
-    transform: translate(80px, 70px);
+    width:62px;
+    height:62px;
+
+    display:grid;
+    place-items:center;
+
+    border-radius:50%;
+
+    background:rgba(53,238,121,.1);
+    border:1px solid rgba(53,238,121,.3);
+
+    color:var(--green);
+
+    font-size:27px;
 }
 
+.pred-text{
+    position:relative;
 }
 
-.check-circle {
-
-position: relative;
-
-width: 70px;
-height: 70px;
-
-flex-shrink: 0;
-
-display: grid;
-
-place-items: center;
-
-border-radius: 50%;
-
-background:
-    rgba(50,232,117,0.12);
-
-border: 1px solid rgba(50,232,117,0.3);
-
-color: var(--green);
-
-font-size: 30px;
-
-box-shadow:
-    0 0 35px rgba(50,232,117,0.13);
-
+.pred-text small{
+    color:var(--green);
+    font-size:8px;
+    font-weight:800;
+    letter-spacing:1.5px;
 }
 
-.prediction-content {
+.pred-text h2{
+    margin-top:5px;
 
-position: relative;
+    color:white;
 
+    font-family:"Space Grotesk",sans-serif;
+
+    font-size:clamp(25px,4vw,38px);
 }
 
-.prediction-content > span {
-
-color: var(--green);
-
-font-size: 10px;
-
-font-weight: 800;
-
-letter-spacing: 1.5px;
-
+.pred-text p{
+    margin-top:3px;
+    color:var(--muted);
+    font-size:10px;
 }
 
-.prediction-content h2 {
+.confidence{
+    position:relative;
 
-margin: 7px 0;
-
-font-size: clamp(28px, 5vw, 42px);
-
-color: white;
-
+    min-width:130px;
+    text-align:right;
 }
 
-.prediction-content p {
-
-color: var(--muted);
-
-font-size: 12px;
-
+.confidence span{
+    color:#718279;
+    font-size:8px;
+    font-weight:700;
+    letter-spacing:1px;
 }
 
+.confidence strong{
+    display:block;
 
-.eco-section {
+    margin-top:3px;
 
-margin-top: 90px;
+    color:var(--green);
 
+    font-family:"Space Grotesk",sans-serif;
+    font-size:24px;
 }
 
-.section-title {
+.conf-bar{
+    width:130px;
+    height:5px;
 
-text-align: center;
+    margin-top:6px;
 
-margin-bottom: 30px;
+    border-radius:10px;
 
+    background:rgba(255,255,255,.07);
+
+    overflow:hidden;
 }
 
-.section-title > span {
-
-color: var(--green);
-
-font-size: 10px;
-
-font-weight: 800;
-
-letter-spacing: 2px;
-
-}
-
-.section-title h2 {
-
-margin-top: 9px;
-
-color: white;
-
-font-size: 30px;
-
-}
-
-.section-title h2 span {
-
-color: var(--green);
-
-}
-
-.section-title p {
-
-margin-top: 8px;
-
-color: var(--muted);
-
-font-size: 13px;
-
-}
-
-.guide-grid {
-
-display: grid;
-
-grid-template-columns: repeat(2, 1fr);
-
-gap: 15px;
-
-}
-
-.guide-card {
-
-position: relative;
-
-display: flex;
-
-align-items: center;
-
-gap: 16px;
-
-padding: 24px;
-
-min-height: 125px;
-
-border-radius: 18px;
-
-background:
-    rgba(255,255,255,0.045);
-
-border: 1px solid var(--border);
-
-overflow: hidden;
-
-transition:
-    transform 0.3s,
-    border-color 0.3s,
-    background 0.3s;
-
-}
-
-.guide-card::after {
-
-content: "";
-
-position: absolute;
-
-width: 100px;
-height: 100px;
-
-right: -50px;
-bottom: -50px;
-
-border-radius: 50%;
-
-background: rgba(50,232,117,0.08);
-
-}
-
-.guide-card:hover {
-
-transform: translateY(-6px);
-
-background:
-    rgba(255,255,255,0.075);
-
-border-color:
-    rgba(50,232,117,0.25);
-
-}
-
-.guide-icon {
-
-width: 50px;
-height: 50px;
-
-display: grid;
-
-place-items: center;
-
-flex-shrink: 0;
-
-border-radius: 14px;
-
-background:
-    rgba(50,232,117,0.08);
-
-font-size: 23px;
-
-}
-
-.guide-card span {
-
-color: #73877b;
-
-font-size: 9px;
-
-font-weight: 800;
-
-letter-spacing: 1.2px;
-
-}
-
-.guide-card h3 {
-
-margin-top: 7px;
-
-color: white;
-
-font-size: 15px;
-
-line-height: 1.4;
-
-}
-
-.card-arrow {
-
-margin-left: auto;
-
-color: #60746a;
-
-transition: 0.3s;
-
-}
-
-.guide-card:hover .card-arrow {
-
-color: var(--green);
-
-transform: translateX(5px);
-
-}
-
-
-
-.ai-complete {
-
-display: flex;
-
-justify-content: center;
-
-align-items: center;
-
-gap: 20px;
-
-width: fit-content;
-
-max-width: 100%;
-
-margin: 70px auto 0;
-
-padding: 22px 30px;
-
-border-radius: 20px;
-
-background:
-    rgba(255,255,255,0.035);
-
-border: 1px solid var(--border);
-
-}
-
-.complete-ring {
-
-width: 55px;
-height: 55px;
-
-display: grid;
-
-place-items: center;
-
-border-radius: 50%;
-
-background:
-    conic-gradient(
-        var(--green),
-        transparent,
+.conf-bar div{
+    width:94%;
+    height:100%;
+
+    border-radius:10px;
+
+    background:linear-gradient(
+        90deg,
+        var(--green2),
         var(--green)
     );
-
-animation: ringSpin 5s linear infinite;
-
 }
 
-.ring-inner {
+/* GUIDE */
 
-width: 43px;
-height: 43px;
-
-display: grid;
-
-place-items: center;
-
-border-radius: 50%;
-
-background: var(--bg);
-
-color: var(--green);
-
-font-weight: 800;
-
+.guide{
+    margin-top:25px;
 }
 
-@keyframes ringSpin {
-
-to {
-    transform: rotate(360deg);
+.section-head{
+    text-align:center;
+    margin-bottom:16px;
 }
 
+.section-head label{
+    color:var(--green);
+
+    font-size:8px;
+    font-weight:800;
+    letter-spacing:2px;
 }
 
-.ai-complete span {
+.section-head h2{
+    margin-top:5px;
 
-color: var(--green);
+    color:white;
 
-font-size: 9px;
-
-font-weight: 800;
-
-letter-spacing: 1.5px;
-
+    font-family:"Space Grotesk",sans-serif;
+    font-size:25px;
 }
 
-.ai-complete h3 {
+.section-head p{
+    margin-top:4px;
 
-margin-top: 4px;
-
-color: white;
-
-font-size: 15px;
-
+    color:var(--muted);
+    font-size:10px;
 }
 
-.ai-complete p {
-
-margin-top: 3px;
-
-color: var(--muted);
-
-font-size: 11px;
-
+.guide-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:11px;
 }
 
+.guide-card{
+    min-height:125px;
 
+    padding:18px;
 
-.impact-section {
+    border-radius:17px;
 
-width: min(1000px, calc(100% - 30px));
+    background:rgba(255,255,255,.04);
 
-margin: 140px auto 100px;
+    border:1px solid var(--border);
 
+    transition:.3s;
+
+    position:relative;
+    overflow:hidden;
 }
 
-.impact-grid {
+.guide-card:hover{
+    transform:translateY(-5px);
 
-display: grid;
+    background:rgba(255,255,255,.065);
 
-grid-template-columns: repeat(3, 1fr);
-
-gap: 15px;
-
+    border-color:rgba(53,238,121,.22);
 }
 
-.impact-card {
+.guide-icon{
+    width:37px;
+    height:37px;
 
-padding: 28px;
+    display:grid;
+    place-items:center;
 
-text-align: center;
+    border-radius:11px;
 
-border-radius: 20px;
+    background:rgba(53,238,121,.07);
 
-background:
-    rgba(255,255,255,0.035);
-
-border: 1px solid var(--border);
-
-transition: 0.3s;
-
+    font-size:18px;
 }
 
-.impact-card:hover {
+.guide-card label{
+    display:block;
 
-transform: translateY(-7px);
+    margin-top:12px;
 
-background:
-    rgba(255,255,255,0.06);
+    color:#708279;
 
-border-color:
-    rgba(50,232,117,0.2);
-
+    font-size:7px;
+    font-weight:800;
+    letter-spacing:1px;
 }
 
-.impact-card > div {
+.guide-card h3{
+    margin-top:5px;
 
-font-size: 30px;
+    color:white;
 
-margin-bottom: 15px;
-
+    font-size:11px;
+    line-height:1.4;
 }
 
-.impact-card h3 {
+/* HOW IT WORKS */
 
-color: white;
-
-font-size: 15px;
-
+.how{
+    width:min(1000px,calc(100% - 30px));
+    margin:75px auto 0;
 }
 
-.impact-card p {
-
-margin-top: 9px;
-
-color: var(--muted);
-
-font-size: 11px;
-
-line-height: 1.6;
-
+.steps{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:13px;
 }
 
+.step{
+    padding:20px;
 
+    border-radius:17px;
 
-footer {
+    background:rgba(255,255,255,.035);
 
-padding: 50px 20px;
+    border:1px solid var(--border);
 
-text-align: center;
-
-border-top: 1px solid var(--border);
-
-background:
-    rgba(0,0,0,0.15);
-
+    position:relative;
 }
 
-.footer-logo {
+.step-number{
+    position:absolute;
 
-color: white;
+    right:15px;
+    top:13px;
 
-font-weight: 700;
+    color:rgba(53,238,121,.2);
 
-font-size: 17px;
-
+    font-family:"Space Grotesk",sans-serif;
+    font-size:30px;
+    font-weight:700;
 }
 
-.footer-logo b {
-
-color: var(--green);
-
+.step-icon{
+    font-size:22px;
 }
 
-footer p {
+.step h3{
+    margin-top:13px;
 
-margin-top: 10px;
-
-color: var(--muted);
-
-font-size: 11px;
-
+    color:white;
+    font-size:13px;
 }
 
-.footer-line {
+.step p{
+    margin-top:6px;
 
-width: 50px;
+    color:var(--muted);
 
-height: 2px;
-
-margin: 20px auto;
-
-background:
-    linear-gradient(
-        90deg,
-        transparent,
-        var(--green),
-        transparent
-    );
-
+    font-size:10px;
+    line-height:1.6;
 }
 
-footer small {
+/* IMPACT */
 
-color: #52655b;
-
-font-size: 10px;
-
+.impact{
+    width:min(1000px,calc(100% - 30px));
+    margin:70px auto 80px;
 }
 
-
-
-@media (max-width: 700px) {
-
-.navbar {
-
-    width: calc(100% - 20px);
-
-    top: 10px;
-
-    margin-top: 10px;
+.impact-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
 }
 
-nav {
+.impact-card{
+    padding:22px;
 
-    display: none;
+    text-align:center;
+
+    border-radius:17px;
+
+    background:rgba(255,255,255,.035);
+    border:1px solid var(--border);
+
+    transition:.3s;
 }
 
-.hero {
-
-    margin-top: 80px;
+.impact-card:hover{
+    transform:translateY(-5px);
+    border-color:rgba(53,238,121,.2);
 }
 
-.hero h1 {
-
-    letter-spacing: -2px;
-
-    font-size: clamp(38px, 12vw, 60px);
+.impact-card div{
+    font-size:25px;
 }
 
-.classifier-card {
+.impact-card h3{
+    margin-top:10px;
 
-    padding: 22px;
+    color:white;
+    font-size:13px;
 }
 
-.guide-grid {
+.impact-card p{
+    margin-top:6px;
 
-    grid-template-columns: 1fr;
+    color:var(--muted);
+
+    font-size:10px;
+    line-height:1.5;
 }
 
-.impact-grid {
+/* FOOTER */
 
-    grid-template-columns: 1fr;
+footer{
+    padding:35px 20px;
+
+    text-align:center;
+
+    border-top:1px solid var(--border);
+
+    background:rgba(0,0,0,.15);
 }
 
-.prediction-card {
-
-    flex-direction: column;
-
-    text-align: center;
-
-    padding: 28px 20px;
+.footer-logo{
+    color:white;
+    font-weight:700;
 }
 
-.ai-complete {
-
-    text-align: left;
-
-    padding: 18px;
+.footer-logo b{
+    color:var(--green);
 }
 
+footer p{
+    margin-top:7px;
+
+    color:var(--muted);
+    font-size:9px;
 }
 
-@media (max-width: 450px) {
+footer small{
+    display:block;
+    margin-top:15px;
 
-.ai-status {
-
-    display: none;
+    color:#506159;
+    font-size:8px;
 }
 
-.hero {
+/* RESPONSIVE */
 
-    padding: 0 15px;
+@media(max-width:800px){
+
+    .nav-links{
+        display:none;
+    }
+
+    .hero{
+        margin-top:60px;
+    }
+
+    .workspace{
+        grid-template-columns:1fr;
+    }
+
+    .guide-grid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .prediction{
+        grid-template-columns:auto 1fr;
+    }
+
+    .confidence{
+        grid-column:1/-1;
+        text-align:left;
+    }
+
+    .conf-bar{
+        width:100%;
+    }
 }
 
-.hero-description {
+@media(max-width:600px){
 
-    font-size: 14px;
+    .navbar{
+        width:calc(100% - 18px);
+    }
+
+    .online{
+        display:none;
+    }
+
+    .hero h1{
+        letter-spacing:-2px;
+    }
+
+    .stats{
+        grid-template-columns:1fr;
+    }
+
+    .classifier-card{
+        padding:17px;
+    }
+
+    .card-top{
+        align-items:flex-start;
+    }
+
+    .model-tag{
+        display:none;
+    }
+
+    .upload,
+    .preview{
+        min-height:260px;
+    }
+
+    .guide-grid{
+        grid-template-columns:1fr;
+    }
+
+    .steps{
+        grid-template-columns:1fr;
+    }
+
+    .impact-grid{
+        grid-template-columns:1fr;
+    }
+
+    .prediction{
+        padding:20px;
+    }
 }
 
-.upload-area {
+@media(prefers-reduced-motion:reduce){
 
-    min-height: 240px;
-}
-
-.image-wrapper {
-
-    height: 210px;
-}
-
-}
-
-
-
-@media (prefers-reduced-motion: reduce) {
-
-*,
-*::before,
-*::after {
-
-    animation-duration: 0.01ms !important;
-
-    animation-iteration-count: 1 !important;
-
-    scroll-behavior: auto !important;
-
-    transition-duration: 0.01ms !important;
-}
-
+    *,
+    *::before,
+    *::after{
+        animation:none!important;
+        transition:none!important;
+        scroll-behavior:auto!important;
+    }
 }
 
 </style>
-
 </head>
 
 <body>
 
+<div class="grid"></div>
+<div class="glow"></div>
 
-<div class="background-grid"></div>
-<div class="cursor-glow"></div>
+<div class="orb"></div>
+<div class="orb"></div>
+<div class="orb"></div>
+<div class="orb"></div>
+<div class="orb"></div>
+<div class="orb"></div>
 
 
-<div class="particles">
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-    <span></span>
-</div>
-
+<!-- NAVBAR -->
 
 <header class="navbar">
 
     <div class="logo">
         <div class="logo-icon">♻</div>
-        <span>SmartWaste <b>AI</b></span>
+        <span>EcoSort <b>AI</b></span>
     </div>
 
-    <nav>
+    <nav class="nav-links">
         <a href="#home">Home</a>
         <a href="#classifier">AI Classifier</a>
-        <a href="#eco-guide">Eco Guide</a>
+        <a href="#how">How It Works</a>
+        <a href="#impact">Impact</a>
     </nav>
 
-    <div class="ai-status">
-        <span class="status-dot"></span>
-        AI Online
+    <div class="online">
+        <span class="online-dot"></span>
+        AI ONLINE
     </div>
 
 </header>
 
 
-
 <main id="home">
 
-    <section class="hero">
 
-        <div class="hero-badge">
-            <span class="pulse-dot"></span>
-            AI POWERED WASTE ANALYSIS
+<!-- HERO -->
+
+<section class="hero">
+
+    <div class="badge">
+        <span class="badge-dot"></span>
+        AI POWERED WASTE CLASSIFICATION
+    </div>
+
+    <h1>
+        Sort Smarter.
+        <span>Live Greener.</span>
+    </h1>
+
+    <p>
+        Upload a waste image and let AI identify its category,
+        recommend the right disposal method and help you make
+        a more sustainable decision.
+    </p>
+
+    <div class="engine">
+        <span>●</span>
+        AI Classification Engine Ready
+    </div>
+
+</section>
+
+
+<!-- STATS -->
+
+<section class="stats">
+
+    <div class="stat">
+        <div class="stat-icon">⚡</div>
+        <div>
+            <strong>AI Powered</strong>
+            <span>Instant classification</span>
         </div>
+    </div>
 
-        <h1>
-            Turn Waste Into
-            <span>Smart Decisions.</span>
-        </h1>
-
-        <p class="hero-description">
-            Upload an image and let artificial intelligence identify
-            your waste and guide you toward the right disposal method.
-        </p>
-
-        <div class="engine-status">
-            <span>●</span>
-            AI Classification Engine Online
+    <div class="stat">
+        <div class="stat-icon">♻</div>
+        <div>
+            <strong>Smart Sorting</strong>
+            <span>Better waste separation</span>
         </div>
+    </div>
 
-    </section>
+    <div class="stat">
+        <div class="stat-icon">🌱</div>
+        <div>
+            <strong>Eco Friendly</strong>
+            <span>Cleaner decisions</span>
+        </div>
+    </div>
+
+</section>
 
 
-    
+<!-- CLASSIFIER -->
 
-    <section id="classifier" class="classifier-section">
+<section id="classifier" class="classifier">
 
-        <div class="classifier-card">
+    <div class="classifier-card">
 
-            <div class="card-header">
+        <div class="card-top">
+
+            <div class="title-box">
 
                 <div class="ai-icon">
                     ✦
@@ -2033,28 +1443,40 @@ nav {
                     <h2>AI Waste Classifier</h2>
 
                     <p>
-                        Upload a waste image for intelligent classification
+                        Upload an image to identify your waste
                     </p>
                 </div>
 
             </div>
 
+            <div class="model-tag">
+                COMPUTER VISION MODEL
+            </div>
 
-            
-            <form action="/predict"
-                  method="POST"
-                  enctype="multipart/form-data"
-                  id="wasteForm">
+        </div>
 
-               
 
-                <div class="upload-area" id="uploadArea">
+        <form
+            action="/predict"
+            method="POST"
+            enctype="multipart/form-data"
+            id="wasteForm"
+        >
 
-                    <input type="file"
-                           name="file"
-                           id="fileInput"
-                           accept="image/*"
-                           required>
+            <div class="workspace">
+
+
+                <!-- UPLOAD -->
+
+                <div class="upload" id="uploadArea">
+
+                    <input
+                        type="file"
+                        name="file"
+                        id="fileInput"
+                        accept="image/*"
+                        required
+                    >
 
                     <div class="upload-content">
 
@@ -2062,19 +1484,21 @@ nav {
                             ↑
                         </div>
 
-                        <h3>Upload Waste Image</h3>
+                        <h3>
+                            Drop your waste image here
+                        </h3>
 
                         <p>
-                            Drag & Drop your image here
+                            Drag & drop or select an image
                         </p>
 
-                        <span class="or">or</span>
+                        <span class="or">
+                            OR
+                        </span>
 
-                        <button type="button"
-                                class="browse-btn"
-                                id="browseBtn">
+                        <span class="browse">
                             Browse Files
-                        </button>
+                        </span>
 
                         <small>
                             JPG • JPEG • PNG
@@ -2085,26 +1509,35 @@ nav {
                 </div>
 
 
-               
+                <!-- PREVIEW -->
 
-                <div class="preview-container" id="previewContainer">
+                <div class="preview" id="previewContainer">
 
-                    <div class="preview-header">
-                        <span>IMAGE PREVIEW</span>
+                    <div class="preview-head">
 
-                        <button type="button"
-                                id="removeImage">
+                        <span>
+                            IMAGE PREVIEW
+                        </span>
+
+                        <button
+                            type="button"
+                            class="remove"
+                            id="removeImage"
+                        >
                             ×
                         </button>
+
                     </div>
 
-                    <div class="image-wrapper">
+                    <div class="image-box">
 
-                        <img id="imagePreview"
-                             src=""
-                             alt="Selected waste image">
+                        <img
+                            id="imagePreview"
+                            src=""
+                            alt="Selected waste image"
+                        >
 
-                        <div class="scan-line"></div>
+                        <div class="scan"></div>
 
                     </div>
 
@@ -2120,308 +1553,379 @@ nav {
 
                 </div>
 
+            </div>
 
-               
 
-                <button type="submit"
-                        class="analyze-btn"
-                        id="analyzeBtn">
+            <button
+                type="submit"
+                class="analyze"
+                id="analyzeBtn"
+            >
 
-                    <span class="button-icon">✦</span>
+                <span>✦</span>
 
-                    <span id="buttonText">
-                        Analyze Waste
-                    </span>
+                <span id="buttonText">
+                    Analyze Waste
+                </span>
 
-                    <span class="button-arrow">
-                        →
-                    </span>
+                <span class="arrow">
+                    →
+                </span>
 
-                </button>
+            </button>
 
-            </form>
+        </form>
 
+    </div>
+
+</section>
+
+
+<!-- RESULT WILL BE INSERTED HERE -->
+
+<div id="resultMount">
+
+{% if prediction %}
+
+<section class="result" id="resultSection">
+
+    <div class="result-heading">
+
+        <div class="success">
+            ✓ ANALYSIS COMPLETE
         </div>
 
-    </section>
+        <h2>
+            AI Analysis Result
+        </h2>
+
+        <p>
+            Your waste image has been successfully classified.
+        </p>
+
+    </div>
 
 
+    <div class="prediction">
 
-    {% if prediction %}
-
-    <section class="results-section">
-
-        <div class="result-header">
-
-            <div class="complete-badge">
-                <span>✓</span>
-                ANALYSIS COMPLETE
-            </div>
-
-            <h2>AI Analysis Result</h2>
-
-            <p>
-                Our AI has analyzed your uploaded waste image.
-            </p>
-
+        <div class="check">
+            ✓
         </div>
 
-
-        
-
-        <div class="prediction-card">
-
-            <div class="prediction-glow"></div>
-
-            <div class="check-circle">
-                ✓
-            </div>
-
-            <div class="prediction-content">
-
-                <span>DETECTED WASTE</span>
-
-                <h2>
-                    {{ prediction }}
-                </h2>
-
-                <p>
-                    Classification successfully completed
-                </p>
-
-            </div>
-
-        </div>
-
-
-      
-
-        <div id="eco-guide" class="eco-section">
-
-            <div class="section-title">
-
-                <span>SMART DISPOSAL</span>
-
-                <h2>AI Eco Guide</h2>
-
-                <p>
-                    Make better disposal decisions with AI-powered guidance.
-                </p>
-
-            </div>
-
-
-            <div class="guide-grid">
-
-
-               
-
-                <div class="guide-card disposal">
-
-                    <div class="guide-icon">
-                        🗑
-                    </div>
-
-                    <div>
-                        <span>DISPOSAL BIN</span>
-
-                        <h3>
-                            {{ guide.bin }}
-                        </h3>
-                    </div>
-
-                    <div class="card-arrow">
-                        →
-                    </div>
-
-                </div>
-
-
-              
-
-                <div class="guide-card recycle">
-
-                    <div class="guide-icon">
-                        ♻
-                    </div>
-
-                    <div>
-                        <span>RECYCLABLE</span>
-
-                        <h3>
-                            {{ guide.recycle }}
-                        </h3>
-                    </div>
-
-                    <div class="card-arrow">
-                        →
-                    </div>
-
-                </div>
-
-
-               
-
-                <div class="guide-card compost">
-
-                    <div class="guide-icon">
-                        🌱
-                    </div>
-
-                    <div>
-                        <span>COMPOSTABLE</span>
-
-                        <h3>
-                            {{ guide.compost }}
-                        </h3>
-                    </div>
-
-                    <div class="card-arrow">
-                        →
-                    </div>
-
-                </div>
-
-
-               
-
-                <div class="guide-card tip">
-
-                    <div class="guide-icon">
-                        💡
-                    </div>
-
-                    <div>
-                        <span>ECO TIP</span>
-
-                        <h3>
-                            {{ guide.tip }}
-                        </h3>
-                    </div>
-
-                    <div class="card-arrow">
-                        →
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        
-
-        <div class="ai-complete">
-
-            <div class="complete-ring">
-
-                <div class="ring-inner">
-                    ✓
-                </div>
-
-            </div>
-
-            <div>
-
-                <span>AI ANALYSIS</span>
-
-                <h3>Classification Complete</h3>
-
-                <p>
-                    Waste successfully identified by SmartWaste AI.
-                </p>
-
-            </div>
-
-        </div>
-
-
-    </section>
-
-    {% endif %}
-
-
-    
-
-    <section class="impact-section">
-
-        <div class="section-title">
-
-            <span>OUR IMPACT</span>
+        <div class="pred-text">
+
+            <small>
+                DETECTED WASTE
+            </small>
 
             <h2>
-                Small Classification.
-                <span>Big Impact.</span>
+                {{ prediction }}
             </h2>
 
             <p>
-                Every correct waste decision contributes to a cleaner planet.
+                Classification successfully completed
+            </p>
+
+        </div>
+
+        <div class="confidence">
+
+            <span>
+                AI CONFIDENCE
+            </span>
+
+            <strong>
+                {{ confidence }}%
+            </strong>
+
+            <div class="conf-bar">
+                <div style="width: {{ confidence }}%;"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ECO GUIDE -->
+
+    <div class="guide">
+
+        <div class="section-head">
+
+            <label>
+                SMART DISPOSAL
+            </label>
+
+            <h2>
+                Eco Guide
+            </h2>
+
+            <p>
+                Simple actions for a better waste decision.
             </p>
 
         </div>
 
 
-        <div class="impact-grid">
-
-            <div class="impact-card">
-
-                <div>♻</div>
-
-                <h3>Better Recycling</h3>
-
-                <p>
-                    Improve waste separation and recycling efficiency.
-                </p>
-
-            </div>
+        <div class="guide-grid">
 
 
-            <div class="impact-card">
+            <div class="guide-card">
 
-                <div>🌱</div>
+                <div class="guide-icon">
+                    🗑
+                </div>
 
-                <h3>Less Waste</h3>
+                <label>
+                    DISPOSAL BIN
+                </label>
 
-                <p>
-                    Reduce unnecessary waste sent to landfills.
-                </p>
+                <h3>
+                    {{ guide.bin }}
+                </h3>
 
             </div>
 
 
-            <div class="impact-card">
+            <div class="guide-card">
 
-                <div>🌍</div>
+                <div class="guide-icon">
+                    ♻
+                </div>
 
-                <h3>Cleaner Planet</h3>
+                <label>
+                    RECYCLABLE
+                </label>
 
-                <p>
-                    Encourage smarter and more sustainable habits.
-                </p>
+                <h3>
+                    {{ guide.recycle }}
+                </h3>
 
             </div>
+
+
+            <div class="guide-card">
+
+                <div class="guide-icon">
+                    🌱
+                </div>
+
+                <label>
+                    COMPOSTABLE
+                </label>
+
+                <h3>
+                    {{ guide.compost }}
+                </h3>
+
+            </div>
+
+
+            <div class="guide-card">
+
+                <div class="guide-icon">
+                    💡
+                </div>
+
+                <label>
+                    ECO TIP
+                </label>
+
+                <h3>
+                    {{ guide.tip }}
+                </h3>
+
+            </div>
+
 
         </div>
 
-    </section>
+    </div>
+
+</section>
+
+{% endif %}
+
+</div>
+
+
+<!-- HOW IT WORKS -->
+
+<section class="how" id="how">
+
+    <div class="section-head">
+
+        <label>
+            SIMPLE PROCESS
+        </label>
+
+        <h2>
+            How EcoSort Works
+        </h2>
+
+        <p>
+            Three simple steps to make smarter waste decisions.
+        </p>
+
+    </div>
+
+
+    <div class="steps">
+
+        <div class="step">
+
+            <div class="step-number">
+                01
+            </div>
+
+            <div class="step-icon">
+                📷
+            </div>
+
+            <h3>
+                Upload Image
+            </h3>
+
+            <p>
+                Choose a clear image of the waste item you want to classify.
+            </p>
+
+        </div>
+
+
+        <div class="step">
+
+            <div class="step-number">
+                02
+            </div>
+
+            <div class="step-icon">
+                🧠
+            </div>
+
+            <h3>
+                AI Analyzes
+            </h3>
+
+            <p>
+                Our computer vision model analyzes the uploaded image.
+            </p>
+
+        </div>
+
+
+        <div class="step">
+
+            <div class="step-number">
+                03
+            </div>
+
+            <div class="step-icon">
+                🌱
+            </div>
+
+            <h3>
+                Get Eco Guidance
+            </h3>
+
+            <p>
+                Receive the waste category and recommended disposal method.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- IMPACT -->
+
+<section class="impact" id="impact">
+
+    <div class="section-head">
+
+        <label>
+            OUR IMPACT
+        </label>
+
+        <h2>
+            Small Decisions. Big Impact.
+        </h2>
+
+        <p>
+            Better classification can lead to better waste management.
+        </p>
+
+    </div>
+
+
+    <div class="impact-grid">
+
+        <div class="impact-card">
+
+            <div>♻</div>
+
+            <h3>
+                Better Recycling
+            </h3>
+
+            <p>
+                Encourage correct separation of recyclable materials.
+            </p>
+
+        </div>
+
+
+        <div class="impact-card">
+
+            <div>🌱</div>
+
+            <h3>
+                Less Landfill Waste
+            </h3>
+
+            <p>
+                Help reduce unnecessary waste sent to landfills.
+            </p>
+
+        </div>
+
+
+        <div class="impact-card">
+
+            <div>🌍</div>
+
+            <h3>
+                Cleaner Future
+            </h3>
+
+            <p>
+                Promote smarter and more sustainable everyday habits.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
 
 </main>
 
 
-
+<!-- FOOTER -->
 
 <footer>
 
     <div class="footer-logo">
-        ♻ SmartWaste <b>AI</b>
+        ♻ EcoSort <b>AI</b>
     </div>
 
     <p>
         Powered by Artificial Intelligence • Built for a Cleaner Future
     </p>
-
-    <div class="footer-line"></div>
 
     <small>
         Smart Waste Classification System
@@ -2430,126 +1934,331 @@ nav {
 </footer>
 
 
-
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const uploadArea = document.getElementById('uploadArea');
-  const fileInput = document.getElementById('fileInput');
-  const browseBtn = document.getElementById('browseBtn');
-  const previewContainer = document.getElementById('previewContainer');
-  const imagePreview = document.getElementById('imagePreview');
-  const fileNameEl = document.getElementById('fileName');
-  const fileSizeEl = document.getElementById('fileSize');
-  const removeImageBtn = document.getElementById('removeImage');
-  const analyzeBtn = document.getElementById('analyzeBtn');
-  const buttonText = document.getElementById('buttonText');
-  const wasteForm = document.getElementById('wasteForm');
-  const cursorGlow = document.querySelector('.cursor-glow');
 
-  
-  document.addEventListener('mousemove', (e) => {
-    if (cursorGlow) {
-      cursorGlow.style.left = e.clientX + 'px';
-      cursorGlow.style.top = e.clientY + 'px';
+document.addEventListener("DOMContentLoaded", () => {
+
+    const uploadArea =
+        document.getElementById("uploadArea");
+
+    const fileInput =
+        document.getElementById("fileInput");
+
+    const previewContainer =
+        document.getElementById("previewContainer");
+
+    const imagePreview =
+        document.getElementById("imagePreview");
+
+    const fileName =
+        document.getElementById("fileName");
+
+    const fileSize =
+        document.getElementById("fileSize");
+
+    const removeImage =
+        document.getElementById("removeImage");
+
+    const wasteForm =
+        document.getElementById("wasteForm");
+
+    const analyzeBtn =
+        document.getElementById("analyzeBtn");
+
+    const buttonText =
+        document.getElementById("buttonText");
+
+    const resultMount =
+        document.getElementById("resultMount");
+
+
+    /* CURSOR GLOW */
+
+    const glow =
+        document.querySelector(".glow");
+
+    document.addEventListener("mousemove", e => {
+
+        if(glow){
+
+            glow.style.left =
+                e.clientX + "px";
+
+            glow.style.top =
+                e.clientY + "px";
+        }
+
+    });
+
+
+    /* FILE SIZE */
+
+    function formatSize(bytes){
+
+        if(bytes < 1024)
+            return bytes + " B";
+
+        if(bytes < 1024 * 1024)
+            return (bytes / 1024).toFixed(1) + " KB";
+
+        return (bytes / (1024 * 1024)).toFixed(1) + " MB";
     }
-  });
 
-  function formatFileSize(bytes) {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-  }
 
-  function showPreview(file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      imagePreview.src = e.target.result;
-      fileNameEl.textContent = file.name;
-      fileSizeEl.textContent = formatFileSize(file.size);
-      previewContainer.classList.add('show');
-    };
-    reader.readAsDataURL(file);
-  }
+    /* PREVIEW */
 
-  function handleFiles(files) {
-    if (files && files.length > 0) {
-      const file = files[0];
-      if (file.type.startsWith('image/')) {
-        showPreview(file);
-      }
+    function showPreview(file){
+
+        if(!file.type.startsWith("image/"))
+            return;
+
+        const reader =
+            new FileReader();
+
+        reader.onload = e => {
+
+            imagePreview.src =
+                e.target.result;
+
+            fileName.textContent =
+                file.name;
+
+            fileSize.textContent =
+                formatSize(file.size);
+
+            previewContainer.classList.add("show");
+
+        };
+
+        reader.readAsDataURL(file);
     }
-  }
 
-  if (browseBtn && fileInput) {
-    browseBtn.addEventListener('click', () => fileInput.click());
-  }
 
-  if (fileInput) {
-    fileInput.addEventListener('change', () => {
-      handleFiles(fileInput.files);
+    /* FILE CHANGE */
+
+    fileInput.addEventListener("change", () => {
+
+        if(fileInput.files.length){
+
+            showPreview(
+                fileInput.files[0]
+            );
+
+        }
+
     });
-  }
 
-  if (uploadArea) {
-    ['dragenter', 'dragover'].forEach((evt) => {
-      uploadArea.addEventListener(evt, (e) => {
+
+    /* DRAG */
+
+    ["dragenter","dragover"].forEach(event => {
+
+        uploadArea.addEventListener(event, e => {
+
+            e.preventDefault();
+
+            uploadArea.classList.add("dragging");
+
+        });
+
+    });
+
+
+    ["dragleave","drop"].forEach(event => {
+
+        uploadArea.addEventListener(event, e => {
+
+            e.preventDefault();
+
+            uploadArea.classList.remove("dragging");
+
+        });
+
+    });
+
+
+    uploadArea.addEventListener("drop", e => {
+
+        const files =
+            e.dataTransfer.files;
+
+        if(files.length){
+
+            fileInput.files =
+                files;
+
+            showPreview(files[0]);
+
+        }
+
+    });
+
+
+    /* REMOVE */
+
+    removeImage.addEventListener("click", e => {
+
         e.preventDefault();
+
         e.stopPropagation();
-        uploadArea.classList.add('dragging');
-      });
+
+        fileInput.value = "";
+
+        imagePreview.src = "";
+
+        previewContainer.classList.remove("show");
+        previewContainer.classList.remove("scanning");
+
     });
 
-    ['dragleave', 'drop'].forEach((evt) => {
-      uploadArea.addEventListener(evt, (e) => {
+
+    /* FORM SUBMIT */
+
+    wasteForm.addEventListener("submit", async e => {
+
         e.preventDefault();
-        e.stopPropagation();
-        uploadArea.classList.remove('dragging');
-      });
+
+
+        if(!fileInput.files.length){
+
+            uploadArea.animate(
+                [
+                    {transform:"translateX(0)"},
+                    {transform:"translateX(-7px)"},
+                    {transform:"translateX(7px)"},
+                    {transform:"translateX(0)"}
+                ],
+                {
+                    duration:300
+                }
+            );
+
+            return;
+        }
+
+
+        /* LOADING */
+
+        analyzeBtn.classList.add("loading");
+
+        buttonText.textContent =
+            "Analyzing...";
+
+        previewContainer.classList.add("scanning");
+
+
+        const formData =
+            new FormData(wasteForm);
+
+
+        try{
+
+            const response =
+                await fetch(
+                    wasteForm.action,
+                    {
+                        method:"POST",
+                        body:formData
+                    }
+                );
+
+
+            if(!response.ok){
+
+                throw new Error(
+                    "Server error"
+                );
+
+            }
+
+
+            const html =
+                await response.text();
+
+
+            /*
+              Flask returns the complete
+              rendered HTML page.
+              We extract only the result.
+            */
+
+            const parser =
+                new DOMParser();
+
+            const doc =
+                parser.parseFromString(
+                    html,
+                    "text/html"
+                );
+
+
+            const newResult =
+                doc.querySelector(
+                    "#resultMount"
+                );
+
+
+            if(newResult){
+
+                resultMount.innerHTML =
+                    newResult.innerHTML;
+
+            }
+
+
+            /* STOP LOADING */
+
+            analyzeBtn.classList.remove(
+                "loading"
+            );
+
+            buttonText.textContent =
+                "Analyze Again";
+
+            previewContainer.classList.remove(
+                "scanning"
+            );
+
+
+            /* SMOOTHLY SHOW RESULT */
+
+            setTimeout(() => {
+
+                resultMount.scrollIntoView({
+                    behavior:"smooth",
+                    block:"start"
+                });
+
+            },100);
+
+
+        }
+        catch(error){
+
+            console.error(error);
+
+            analyzeBtn.classList.remove(
+                "loading"
+            );
+
+            buttonText.textContent =
+                "Try Again";
+
+            previewContainer.classList.remove(
+                "scanning"
+            );
+
+            alert(
+                "Something went wrong. Please try again."
+            );
+
+        }
+
     });
 
-    uploadArea.addEventListener('drop', (e) => {
-      const dt = e.dataTransfer;
-      if (dt && dt.files && dt.files.length > 0) {
-        fileInput.files = dt.files;
-        handleFiles(dt.files);
-      }
-    });
-  }
-
-  if (removeImageBtn) {
-    removeImageBtn.addEventListener('click', () => {
-      fileInput.value = '';
-      imagePreview.src = '';
-      previewContainer.classList.remove('show');
-      previewContainer.classList.remove('scanning');
-    });
-  }
-
-  if (wasteForm) {
-    wasteForm.addEventListener('submit', (e) => {
-      if (!fileInput.files || fileInput.files.length === 0) {
-        e.preventDefault();
-        uploadArea.animate(
-          [
-            { transform: 'translateX(0)' },
-            { transform: 'translateX(-6px)' },
-            { transform: 'translateX(6px)' },
-            { transform: 'translateX(0)' }
-          ],
-          { duration: 300 }
-        );
-        return;
-      }
-
-      analyzeBtn.classList.add('loading');
-      buttonText.textContent = 'Analyzing...';
-      previewContainer.classList.add('scanning');
-    });
-  }
 });
 
 </script>
 
 </body>
-
 </html>
