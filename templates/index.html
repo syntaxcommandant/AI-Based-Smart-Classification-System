@@ -2828,14 +2828,14 @@
         function updateChatContextAfterPrediction() {
             const predEl = document.querySelector(".pred-text h2");
             const confEl = document.querySelector(".confidence strong");
-            const inpageCtx = document.getElementById("inpageContextText");
+            const geminiCtx = document.getElementById("geminiContextText");
             const drawerCtx = document.getElementById("chatContextText");
 
             if (predEl) {
                 currentDetectedClass = predEl.textContent.trim();
                 currentConfidence = confEl ? confEl.textContent.trim().replace("%", "") : "95";
                 const label = `Session: Scanned ${currentDetectedClass} (${currentConfidence}%)`;
-                if (inpageCtx) inpageCtx.textContent = label;
+                if (geminiCtx) geminiCtx.textContent = label;
                 if (drawerCtx) drawerCtx.textContent = label;
             }
         }
@@ -2843,7 +2843,18 @@
         document.addEventListener("DOMContentLoaded", () => {
             updateChatContextAfterPrediction();
 
-            // Drawer input enter key
+            // Gemini In-page input enter key
+            const geminiInput = document.getElementById("geminiInput");
+            if (geminiInput) {
+                geminiInput.addEventListener("keydown", (e) => {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        sendGeminiMessage();
+                    }
+                });
+            }
+
+            // Drawer input enter key if present
             const chatInput = document.getElementById("chatInput");
             if (chatInput) {
                 chatInput.addEventListener("keydown", (e) => {
@@ -2853,94 +2864,124 @@
                     }
                 });
             }
-
-            // In-page input enter key
-            const inpageInput = document.getElementById("inpageInput");
-            if (inpageInput) {
-                inpageInput.addEventListener("keydown", (e) => {
-                    if (e.key === "Enter") {
-                        e.preventDefault();
-                        sendInpageMessage();
-                    }
-                });
-            }
         });
 
-        function toggleEcoChat() {
-            const drawer = document.getElementById("chatDrawer");
-            if (!drawer) return;
-            drawer.classList.toggle("open");
-            if (drawer.classList.contains("open")) {
-                setTimeout(() => {
-                    const input = document.getElementById("chatInput");
-                    if (input) input.focus();
-                }, 300);
+        async function sendGeminiMessage() {
+            const input = document.getElementById("geminiInput");
+            if (!input) return;
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = "";
+
+            const msgs = document.getElementById("geminiMessages");
+            const sendBtn = document.getElementById("geminiSendBtn");
+            if (sendBtn) sendBtn.disabled = true;
+
+            if (msgs) {
+                // Append user bubble
+                const userRow = document.createElement("div");
+                userRow.className = "gemini-row user";
+                userRow.innerHTML = `
+                    <div class="gemini-bubble">
+                        <p>${escapeHtml(text)}</p>
+                        <span class="gemini-time">Just now</span>
+                    </div>
+                `;
+                msgs.appendChild(userRow);
+                msgs.scrollTop = msgs.scrollHeight;
+
+                // Append typing indicator
+                const typingRow = document.createElement("div");
+                typingRow.className = "gemini-row bot gemini-typing-row";
+                typingRow.innerHTML = `
+                    <div class="gemini-bot-icon">✦</div>
+                    <div class="gemini-bubble">
+                        <div class="chat-typing"><span></span><span></span><span></span></div>
+                    </div>
+                `;
+                msgs.appendChild(typingRow);
+                msgs.scrollTop = msgs.scrollHeight;
+            }
+
+            try {
+                const response = await fetch("/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: text,
+                        detected_class: currentDetectedClass,
+                        confidence: currentConfidence
+                    })
+                });
+
+                const data = await response.json();
+                const reply = data.reply || "Sorry, I couldn't process that. Please ask again!";
+                const formatted = formatReply(reply);
+
+                // Remove typing indicator
+                document.querySelectorAll(".gemini-typing-row").forEach(el => el.remove());
+
+                if (msgs) {
+                    const botRow = document.createElement("div");
+                    botRow.className = "gemini-row bot";
+                    botRow.innerHTML = `
+                        <div class="gemini-bot-icon">✦</div>
+                        <div class="gemini-bubble">
+                            ${formatted}
+                            <span class="gemini-time">AI Ready</span>
+                        </div>
+                    `;
+                    msgs.appendChild(botRow);
+                    msgs.scrollTop = msgs.scrollHeight;
+                }
+            } catch (err) {
+                console.error("Gemini chat error:", err);
+                document.querySelectorAll(".gemini-typing-row").forEach(el => el.remove());
+                if (msgs) {
+                    const errRow = document.createElement("div");
+                    errRow.className = "gemini-row bot";
+                    errRow.innerHTML = `
+                        <div class="gemini-bot-icon">⚠️</div>
+                        <div class="gemini-bubble">
+                            <p>⚠️ Connection issue. Please check that server is running.</p>
+                            <span class="gemini-time">Error</span>
+                        </div>
+                    `;
+                    msgs.appendChild(errRow);
+                    msgs.scrollTop = msgs.scrollHeight;
+                }
+            } finally {
+                if (sendBtn) sendBtn.disabled = false;
+                if (input) input.focus();
             }
         }
 
-        function openEcoChat(prefillMsg) {
-            // Scroll to the in-page section smoothly
+        function clearGeminiChat() {
+            const msgs = document.getElementById("geminiMessages");
+            if (!msgs) return;
+            msgs.innerHTML = `
+                <div class="gemini-row bot">
+                    <div class="gemini-bot-icon">✦</div>
+                    <div class="gemini-bubble">
+                        <p>Hello! I am <strong>EcoAgent</strong>, your intelligent sustainability companion.</p>
+                        <p>Ask me anything about waste sorting, recycling rules, composting, cleaning dirty containers, or creative DIY upcycling ideas!</p>
+                        <span class="gemini-time">AI Ready</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function askEcoAgentAboutItem(prediction) {
             const section = document.getElementById("ecoagent");
             if (section) {
                 section.scrollIntoView({ behavior: "smooth", block: "center" });
-                const inpageInput = document.getElementById("inpageInput");
-                if (inpageInput) {
-                    inpageInput.value = prefillMsg || "";
-                    if (prefillMsg) {
-                        setTimeout(() => sendInpageMessage(), 450);
-                    } else {
-                        setTimeout(() => inpageInput.focus(), 450);
-                    }
-                }
-            } else {
-                const drawer = document.getElementById("chatDrawer");
-                if (drawer && !drawer.classList.contains("open")) drawer.classList.add("open");
-                if (prefillMsg) {
-                    const input = document.getElementById("chatInput");
-                    if (input) input.value = prefillMsg;
-                    setTimeout(() => sendDrawerMessage(), 350);
-                }
             }
-        }
-
-        function clearEcoChat() {
-            const drawerMsgs = document.getElementById("chatMessages");
-            const inpageMsgs = document.getElementById("inpageMessages");
-            const welcomeHtml = `
-        <div class="chat-msg bot">
-            <div class="msg-avatar">♻</div>
-            <div class="msg-bubble">
-                <p>Chat cleared! 👋 Feel free to ask any question about recycling, composting, or waste disposal.</p>
-                <span class="msg-time">Just now</span>
-            </div>
-        </div>
-    `;
-            const inpageWelcomeHtml = `
-        <div class="agent-bubble-row bot">
-            <div class="agent-bubble-avatar">♻</div>
-            <div class="agent-bubble-content">
-                <p>Chat cleared! 👋 Ask me anything about waste sorting, cleaning dirty items, or creative DIY ideas.</p>
-                <span class="bubble-time">AI Ready</span>
-            </div>
-        </div>
-    `;
-            if (drawerMsgs) drawerMsgs.innerHTML = welcomeHtml;
-            if (inpageMsgs) inpageMsgs.innerHTML = inpageWelcomeHtml;
-        }
-
-        function sendDrawerQuickPrompt(text) {
-            const input = document.getElementById("chatInput");
+            const input = document.getElementById("geminiInput");
             if (input) {
-                input.value = text;
-                sendDrawerMessage();
-            }
-        }
-
-        function handleInpagePrompt(text) {
-            const input = document.getElementById("inpageInput");
-            if (input) {
-                input.value = text;
-                sendInpageMessage();
+                input.value = `What are the recycling rules and DIY upcycling ideas for ${prediction}?`;
+                setTimeout(() => {
+                    sendGeminiMessage();
+                }, 400);
             }
         }
 
@@ -2950,139 +2991,11 @@
             const text = input.value.trim();
             if (!text) return;
             input.value = "";
-            await dispatchEcoMessage(text, "drawer");
-        }
-
-        async function sendInpageMessage() {
-            const input = document.getElementById("inpageInput");
-            if (!input) return;
-            const text = input.value.trim();
-            if (!text) return;
-            input.value = "";
-            await dispatchEcoMessage(text, "inpage");
-        }
-
-        async function dispatchEcoMessage(userText, source) {
-            const drawerMsgs = document.getElementById("chatMessages");
-            const inpageMsgs = document.getElementById("inpageMessages");
-
-            // Append user message to drawer
-            if (drawerMsgs) {
-                const uDiv = document.createElement("div");
-                uDiv.className = "chat-msg user";
-                uDiv.innerHTML = `
-            <div class="msg-bubble">
-                <p>${escapeHtml(userText)}</p>
-                <span class="msg-time">Just now</span>
-            </div>
-        `;
-                drawerMsgs.appendChild(uDiv);
-                drawerMsgs.scrollTop = drawerMsgs.scrollHeight;
-
-                // Drawer Typing indicator
-                const tDiv = document.createElement("div");
-                tDiv.className = "chat-msg bot drawer-typing";
-                tDiv.innerHTML = `
-            <div class="msg-avatar">♻</div>
-            <div class="msg-bubble">
-                <div class="chat-typing"><span></span><span></span><span></span></div>
-            </div>
-        `;
-                drawerMsgs.appendChild(tDiv);
-                drawerMsgs.scrollTop = drawerMsgs.scrollHeight;
-            }
-
-            // Append user message to inpage
-            if (inpageMsgs) {
-                const uDivIn = document.createElement("div");
-                uDivIn.className = "agent-bubble-row user";
-                uDivIn.innerHTML = `
-            <div class="agent-bubble-content">
-                <p>${escapeHtml(userText)}</p>
-                <span class="bubble-time">Just now</span>
-            </div>
-        `;
-                inpageMsgs.appendChild(uDivIn);
-                inpageMsgs.scrollTop = inpageMsgs.scrollHeight;
-
-                // Inpage typing indicator
-                const tDivIn = document.createElement("div");
-                tDivIn.className = "agent-bubble-row bot inpage-typing";
-                tDivIn.innerHTML = `
-            <div class="agent-bubble-avatar">♻</div>
-            <div class="agent-bubble-content">
-                <div class="chat-typing"><span></span><span></span><span></span></div>
-            </div>
-        `;
-                inpageMsgs.appendChild(tDivIn);
-                inpageMsgs.scrollTop = inpageMsgs.scrollHeight;
-            }
-
-            try {
-                const response = await fetch("/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        message: userText,
-                        detected_class: currentDetectedClass,
-                        confidence: currentConfidence
-                    })
-                });
-
-                const data = await response.json();
-                const reply = data.reply || "Sorry, I couldn't process that. Please try asking again!";
-                const formatted = formatReply(reply);
-
-                // Remove typing indicators
-                document.querySelectorAll(".drawer-typing, .inpage-typing").forEach(el => el.remove());
-
-                // Append bot reply to drawer
-                if (drawerMsgs) {
-                    const bDiv = document.createElement("div");
-                    bDiv.className = "chat-msg bot";
-                    bDiv.innerHTML = `
-                <div class="msg-avatar">♻</div>
-                <div class="msg-bubble">
-                    ${formatted}
-                    <span class="msg-time">Just now</span>
-                </div>
-            `;
-                    drawerMsgs.appendChild(bDiv);
-                    drawerMsgs.scrollTop = drawerMsgs.scrollHeight;
-                }
-
-                // Append bot reply to inpage
-                if (inpageMsgs) {
-                    const bDivIn = document.createElement("div");
-                    bDivIn.className = "agent-bubble-row bot";
-                    bDivIn.innerHTML = `
-                <div class="agent-bubble-avatar">♻</div>
-                <div class="agent-bubble-content">
-                    ${formatted}
-                    <span class="bubble-time">Just now</span>
-                </div>
-            `;
-                    inpageMsgs.appendChild(bDivIn);
-                    inpageMsgs.scrollTop = inpageMsgs.scrollHeight;
-                }
-
-            } catch (err) {
-                console.error("Chat error:", err);
-                document.querySelectorAll(".drawer-typing, .inpage-typing").forEach(el => el.remove());
-
-                const errHtml = `<p>⚠️ Connection issue. Please ensure the server is running on http://127.0.0.1:5000.</p>`;
-                if (drawerMsgs) {
-                    const errDiv = document.createElement("div");
-                    errDiv.className = "chat-msg bot";
-                    errDiv.innerHTML = `<div class="msg-avatar">⚠️</div><div class="msg-bubble">${errHtml}</div>`;
-                    drawerMsgs.appendChild(errDiv);
-                }
-                if (inpageMsgs) {
-                    const errDivIn = document.createElement("div");
-                    errDivIn.className = "agent-bubble-row bot";
-                    errDivIn.innerHTML = `<div class="agent-bubble-avatar">⚠️</div><div class="agent-bubble-content">${errHtml}</div>`;
-                    inpageMsgs.appendChild(errDivIn);
-                }
+            
+            const geminiIn = document.getElementById("geminiInput");
+            if (geminiIn) {
+                geminiIn.value = text;
+                await sendGeminiMessage();
             }
         }
 
