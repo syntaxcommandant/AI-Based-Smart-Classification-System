@@ -198,25 +198,33 @@ def get_ai_chat_response(user_msg, detected_class="None", confidence="None"):
     Answers user questions about waste disposal, recycling rules, and creative upcycling.
     Uses Gemini API if key is available; otherwise uses intelligent offline Knowledge Engine.
     """
+    msg = user_msg.lower().strip()
+
+    # Fast-path instant response for common greetings (0ms latency, zero cloud lag)
+    if msg in ["hello", "hi", "hey", "namaste", "good morning", "good evening", "good afternoon", "hlo", "helo", "yo"]:
+        return "👋 Hello! I'm EcoAgent, your AI Sustainability Assistant. Ask me anything about waste sorting, recycling rules, composting tips, or creative DIY upcycling ideas!"
+
     api_key = os.environ.get("GEMINI_API_KEY", "")
 
     if api_key:
         context_str = f"Scanned item in current session: {detected_class} ({confidence}% confidence)." if detected_class and detected_class != "None" else "No specific item scanned yet."
         prompt = (
-            f"You are EcoAgent, a friendly, inspiring, and expert AI Waste Management & Sustainability Assistant. "
+            f"You are EcoAgent, a friendly, expert AI Waste Management Assistant. "
             f"Session Context: {context_str}\n"
             f"User Question: '{user_msg}'\n\n"
-            f"Instructions:\n"
-            f"1. Be direct, clear, and actionable (2-4 concise sentences or bullet points).\n"
-            f"2. Specify designated bin colors (Blue = Dry Recyclables, Green = Wet Compost, Red/Special = E-waste/Hazardous).\n"
-            f"3. Provide practical tips like rinsing, caps, sorting, or creative DIY upcycling ideas.\n"
-            f"4. Keep your tone cheerful and encouraging."
+            f"Instructions: Give a concise, direct answer in 2-3 sentences. Specify exact bin colors (Blue = Dry Recyclables, Green = Compost, Red/Black = Hazardous) and a practical sorting or upcycle tip."
         )
 
         try:
             url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
             headers = {"Content-Type": "application/json"}
-            payload = {"contents": [{"parts": [{"text": prompt}]}]}
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "maxOutputTokens": 160,
+                    "temperature": 0.2
+                }
+            }
 
             req = urllib.request.Request(
                 url,
@@ -224,7 +232,7 @@ def get_ai_chat_response(user_msg, detected_class="None", confidence="None"):
                 headers=headers,
                 method="POST"
             )
-            with urllib.request.urlopen(req, timeout=8) as response:
+            with urllib.request.urlopen(req, timeout=6) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 return res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
         except Exception as e:
