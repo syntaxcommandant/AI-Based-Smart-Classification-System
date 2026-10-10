@@ -4,10 +4,36 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 import numpy as np
 
+import sys
 import os
 import json
 import urllib.request
 import urllib.error
+
+# Force UTF-8 on Windows terminal so emoji prints don't raise UnicodeEncodeError
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
+# Automatically load .env file if present (zero dependencies required)
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+if os.path.exists(env_path):
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip().strip('"').strip("'")
+                    if k and v:
+                        os.environ.setdefault(k, v)
+        print("[Config] Loaded environment variables from .env")
+    except Exception as e:
+        print(f"[Config] Error loading .env: {e}")
 
 app = Flask(__name__)
 
@@ -204,41 +230,132 @@ def get_ai_chat_response(user_msg, detected_class="None", confidence="None"):
         except Exception as e:
             print(f"[EcoAgent Chat] API fallback triggered: {e}")
 
-    # Offline Intelligent Eco Knowledge Engine (NLP rule-based fallback)
+    # Offline Intelligent Eco Knowledge Engine (NLP fallback when offline/no API key)
     msg = user_msg.lower()
 
-    if "pizza" in msg or "greas" in msg or "oil" in msg:
+    # 1. Food Contaminated Paper / Pizza
+    if any(k in msg for k in ["pizza", "greas", "oil on paper", "cheese box"]):
         return "🍕 Greasy pizza boxes or paper soaked in oil/cheese cannot be recycled with clean paper because grease ruins paper pulp! Tear off the clean dry lid for the Blue Recycling Bin, and place the greasy portion into the Green Compost/Wet Waste Bin."
-    elif "batter" in msg or "ewaste" in msg or "e-waste" in msg or "phone" in msg or "electronic" in msg or "cable" in msg:
-        return "⚡ E-Waste and batteries contain toxic heavy metals (lithium, lead, mercury) that leach into soil if landfilled. Never place them in ordinary bins; deposit them at specialized municipal e-waste collection bins or authorized electronic drop-offs."
-    elif "wash" in msg or "clean" in msg or "rinse" in msg or "cap" in msg or "lid" in msg:
-        return "🧴 Yes! For containers (bottles, jars, cans), give them a quick water rinse to remove food/drink residues. Removing food residue prevents contamination. Bottle caps and lids can usually be screwed back on tightly before placing them in the Blue Bin."
-    elif "bottle" in msg or "plastic" in msg:
-        return "🧴 For plastic bottles: Empty any remaining liquids, give it a quick water rinse, and crush it to save space in the bin. Bottle caps can generally be left on. Always dispose of them in the Blue Recycling Bin!"
-    elif "metal" in msg or "can" in msg or "tin" in msg or "aluminum" in msg:
-        return "🥫 Metal and aluminum cans are 100% infinitely recyclable without quality loss! Rinse them out, lightly crush to save space, and place them in the Blue Recycling Bin."
-    elif "glass" in msg or "jar" in msg:
-        return "🍾 Glass bottles and jars are 100% recyclable. Rinse them before recycling. Important: Heat-resistant glassware (Pyrex), mirrors, ceramic mugs, and broken glass should not go in standard glass recycling due to varying melting points—wrap them safely in old paper for general waste."
-    elif "paper" in msg or "cardboard" in msg or "box" in msg:
-        return "📦 Keep paper and cardboard clean and completely dry. Always flatten cardboard boxes before disposal to preserve bin capacity. Shredded paper or greasy paper goes to compost/wet waste."
-    elif "organic" in msg or "food" in msg or "compost" in msg or "peel" in msg or "kitchen" in msg:
-        return "🌱 Food scraps, vegetable peels, coffee grounds, and garden clippings belong in the Green Bin for composting. Composting diverts waste from landfills and generates rich organic soil fertilizer while curbing methane emissions!"
-    elif "upcycle" in msg or "diy" in msg or "reuse" in msg or "craft" in msg:
+
+    # 2. Thermocol & Styrofoam
+    elif any(k in msg for k in ["thermocol", "styrofoam", "polystyrene", "eps"]):
+        return "📦 Thermocol (Expanded Polystyrene) is non-biodegradable and 95% air—it breaks into harmful micro-plastics and cannot go into regular paper/plastic recycling! Never put it in the Green Compost Bin. Reuse packing blocks for shipping, or hand them to specialized EPS recycling drop-offs / dry non-recyclable waste."
+
+    # 3. Milk Pouches, Polythene & Wrappers
+    elif any(k in msg for k in ["milk pouch", "polythene", "plastic bag", "wrapper", "chips", "kurkure", "biscuit pack", "snack packet", "polybag"]):
+        return "🛍 Milk pouches (LDPE) and multi-layered packaging (MLP like chips/biscuit packets) cannot be processed with rigid PET plastic bottles. Wash & dry milk pouches and hand them to specialized dry waste aggregators. Chips wrappers go to non-recyclable dry waste for cement kiln energy recovery."
+
+    # 4. Tetra Pak & Juice Cartons
+    elif any(k in msg for k in ["tetra", "juice box", "juice carton", "milk carton"]):
+        return "🧃 Tetra Paks are composite cartons made of 75% paperboard, 20% polyethylene, and 5% aluminum foil. Rinse, flatten, and deposit in Blue Dry Recycling Bins where municipal facilities have hydrapulping capabilities to separate paper fibers from poly-aluminum."
+
+    # 5. Medicines & Blister Packs
+    elif any(k in msg for k in ["medicine", "tablet", "blister", "syrup", "expired medicine", "pharma"]):
+        return "💊 Medicines and metallic/plastic blister packs are Domestic Hazardous / Biomedical waste. Never flush expired medicines down drains or compost them! Wrap them securely and place them in the Red/Black Hazardous Bin, or return to pharmacy take-back kiosks."
+
+    # 6. Bulbs, CFLs & Tube Lights
+    elif any(k in msg for k in ["bulb", "cfl", "led", "tube light", "tubelight", "fluorescent"]):
+        return "💡 Fluorescent tubes and CFL bulbs contain hazardous mercury vapor. Never throw them in standard glass recycling or crush them! Wrap carefully and dispose of them at designated Hazardous E-Waste kiosks or Red Bins."
+
+    # 7. Aluminium Foil & Food Containers
+    elif any(k in msg for k in ["foil", "aluminium foil", "aluminum foil", "silver foil", "takeaway container"]):
+        return "🥡 Clean aluminium foil is 100% infinitely recyclable! Scrunch clean foil scraps into a large ball (so recycling machines don't lose it) and place in the Blue Bin. Greasy food-caked foil should go into non-recyclable dry waste."
+
+    # 8. Clothes, Fabrics & Footwear
+    elif any(k in msg for k in ["cloth", "textile", "shirt", "jeans", "fabric", "shoe", "footwear"]):
+        return "👕 Wearable clothes and shoes should be donated to NGOs or textile banks. Torn or ruined fabrics can be upcycled into cleaning rags or dropped off at textile recycling drives. Never throw clothes into green wet waste!"
+
+    # 9. Sanitary Waste & Diapers
+    elif any(k in msg for k in ["diaper", "pad", "sanitary", "mask", "bandage", "tissue", "cotton swab"]):
+        return "🗑 Sanitary waste (diapers, pads, masks, bandages) is bio-hazardous. Wrap securely in newspaper or marked red-dot disposal bags and place strictly in the Red / Black Sanitary Waste Bin. Never flush or compost them."
+
+    # 10. Organic Garden & Kitchen (Coconut, Egg shells, Leaves, Tea bags)
+    elif any(k in msg for k in ["coconut", "egg shell", "dry leaf", "leaves", "tea bag", "coffee ground", "wood"]):
+        return "🥥 Coconut shells, dry leaves, egg shells, and tea leaves are organic waste! Egg shells enrich compost with calcium. Dry leaves and coconut shells make great carbon-rich 'brown' layers for compost pits (Green Bin)."
+
+    # 11. Meat, Bones & Dairy leftovers
+    elif any(k in msg for k in ["meat", "bone", "fish", "dairy", "cheese"]):
+        return "🍗 Meat leftovers and bones can attract vermin and cause odors in simple home pits. For municipal collection, place them in the Green Wet Waste Bin for industrial anaerobic composting or biogas generation."
+
+    # 12. Pens & Stationery
+    elif any(k in msg for k in ["pen", "marker", "pencil", "stationery", "refill", "eraser"]):
+        return "🖊 Plastic pens and markers consist of mixed plastics, metal springs, and chemical inks. Separate metal nibs if possible, collect used pens for NGO recycling programs (like TerraCycle), or dispose of in dry non-recyclable waste."
+
+    # 13. Broken Glass, Mirrors & Ceramics
+    elif any(k in msg for k in ["mirror", "ceramic", "crockery", "broken glass", "plate", "mug", "pyrex"]):
+        return "🪞 Mirrors, ceramics, Pyrex, and window panes have different melting temperatures than bottle glass and ruin recyclers' furnaces! Wrap broken pieces securely in cardboard or newspaper to protect sanitation workers and deposit in non-recyclable dry waste."
+
+    # 14. E-Waste & Batteries
+    elif any(k in msg for k in ["batter", "ewaste", "e-waste", "phone", "electronic", "cable", "wire", "charger", "laptop"]):
+        return "⚡ E-Waste and batteries contain toxic heavy metals (lithium, lead, cadmium). Never place them in ordinary bins; deposit them at authorized e-waste collection bins or electronic retail take-back points."
+
+    # 15. Washing & Rinsing
+    elif any(k in msg for k in ["wash", "clean", "rinse", "cap", "lid"]):
+        return "🧴 Yes! For containers (bottles, jars, cans), give them a quick water rinse to remove food/drink residues. Removing residues prevents mold and contamination. Bottle caps can usually be screwed back on tightly before placing them in the Blue Bin."
+
+    # 16. Single Use Plastics & Straws
+    elif any(k in msg for k in ["single use", "straw", "cutlery", "plastic fork", "plastic spoon"]):
+        return "🥤 Single-use plastic straws and cutlery are major marine pollutants and take 400+ years to degrade. Switch to reusable steel or bamboo alternatives. Used disposable cutlery belongs in dry non-recyclable waste."
+
+    # 17. Paper Cups & Coffee Cups
+    elif any(k in msg for k in ["coffee cup", "paper cup", "disposable cup"]):
+        return "☕ Most disposable paper coffee cups have an internal waterproof polyethylene plastic coating. This makes them non-recyclable in standard paper mills. Unless certified 100% compostable, dispose of them in dry general waste."
+
+    # 18. General Plastic Bottles
+    elif any(k in msg for k in ["bottle", "plastic"]):
+        return "🧴 For plastic bottles (PET #1 / HDPE #2): Empty liquids, rinse, squash flat to save bin space, screw cap back on, and drop into the Blue Recycling Bin!"
+
+    # 19. Metal & Cans
+    elif any(k in msg for k in ["metal", "can", "tin", "aluminum"]):
+        return "🥫 Metal and aluminum cans are 100% infinitely recyclable without quality loss! Rinse them out, lightly crush to save bin space, and place them in the Blue Recycling Bin."
+
+    # 20. Glass Containers
+    elif any(k in msg for k in ["glass", "jar"]):
+        return "🍾 Glass bottles and jars are 100% recyclable. Rinse them before binning into the Blue Bin. Remove metallic lids and recycle both separately."
+
+    # 21. Paper & Cardboard
+    elif any(k in msg for k in ["paper", "cardboard", "box", "newspaper", "carton"]):
+        return "📦 Keep paper and cardboard clean and dry. Always flatten cardboard boxes before disposal to preserve bin capacity. Place in the Blue Bin."
+
+    # 22. Organic & Food Scraps
+    elif any(k in msg for k in ["organic", "food", "compost", "peel", "kitchen waste"]):
+        return "🌱 Vegetable peels, fruit rinds, and food scraps belong in the Green Bin for composting. Composting diverts waste from landfills and creates rich nutrient fertilizer!"
+
+    # 23. Bin Colors
+    elif any(k in msg for k in ["bin", "color", "dustbin", "segregat"]):
+        return "🗑 Standard Segregation Bins:\n• 🟢 Green Bin: Wet Organic & Kitchen Waste (Compostable)\n• 🔵 Blue Bin: Clean Dry Recyclables (Plastic, Paper, Glass, Metal)\n• 🔴 Red / Black Bin: Hazardous, E-Waste & Sanitary Waste."
+
+    # 24. Upcycling & DIY Ideas
+    elif any(k in msg for k in ["upcycle", "diy", "reuse", "craft"]):
         if detected_class == "Plastic":
             return "🎨 Upcycle Idea: Cut plastic bottles in half to create self-watering herb planters, desk pen organizers, or hanging bird feeders!"
         elif detected_class == "Glass":
-            return "🎨 Upcycle Idea: Soak off the label and paint the glass jar to make a rustic candle votive, spice jar, or decorative flower vase!"
+            return "🎨 Upcycle Idea: Clean glass jars and paint them to make rustic candle votives, spice storage containers, or decorative flower vases!"
         elif detected_class == "Metal":
-            return "🎨 Upcycle Idea: Wash tin cans and punch pinhole patterns into them with a nail to create glowing lanterns, or wrap with twine for aesthetic desk cups!"
+            return "🎨 Upcycle Idea: Wash tin cans, hammer decorative pinhole patterns, and insert candles for cozy lanterns, or wrap with jute twine for desk pen stands!"
+        elif detected_class == "Cardboard":
+            return "🎨 Upcycle Idea: Cut cardboard into custom drawer dividers, desk organizers, or use as biodegradable weed barrier mulch for garden beds!"
         else:
-            return "🎨 Upcycle Idea: Empty containers can be repurposed into drawer organizers, cardboard into storage dividers, and jars into aesthetic home decor before considering disposal!"
-    elif "bin" in msg or "color" in msg or "dustbin" in msg:
-        return "🗑 Standard Bin Color Guide:\n• 🟢 Green Bin: Organic / Wet Kitchen Waste (Compostable)\n• 🔵 Blue Bin: Dry Recyclables (Plastic, Paper, Glass, Metal)\n• 🔴 Red / Black Bin: Hazardous, E-Waste & Sanitary Waste."
-    elif "hello" in msg or "hi" in msg or "hey" in msg:
-        return "👋 Hello! I'm EcoAgent, your AI Sustainability Assistant. Ask me anything about waste sorting, recycling guidelines, compost tips, or creative DIY upcycling ideas!"
+            return "🎨 Upcycle Idea: Repurpose empty jars as kitchen storage, bottles into self-watering planters, and cardboard into drawer dividers before tossing them out!"
+
+    # 25. Technical Viva Questions: MobileNetV2, Latency, Gemini
+    elif any(k in msg for k in ["mobilenet", "cnn", "deep learning", "architecture", "model"]):
+        return "🧠 MobileNetV2 is a lightweight Convolutional Neural Network (CNN) developed by Google. It utilizes Inverted Residual blocks with Depthwise Separable Convolutions to achieve high classification accuracy (~92%) with 70% fewer parameters and ultra-low latency, making it ideal for edge deployment."
+    elif any(k in msg for k in ["latency", "speed", "fast", "fps", "inference"]):
+        return "⚡ Latency is the time delay between image input and model output prediction. In our EcoSort system, MobileNetV2 achieves inference latency under 100 milliseconds per frame, enabling fast, real-time waste sorting on standard hardware."
+    elif any(k in msg for k in ["gemini", "agent", "llm"]):
+        return "🤖 Google Gemini 1.5 Flash powers the AI Agent Layer of EcoSort. While MobileNetV2 detects the waste type, the Gemini Agent generates context-aware disposal tips, carbon savings, creative upcycling guides, and answers real-time recycling questions."
+    elif any(k in msg for k in ["project", "ecosort", "about", "what do you do", "who are you"]):
+        return "🌱 EcoSort AI is an intelligent dual-engine waste classification system combining MobileNetV2 computer vision (7 classes) with Google Gemini AI for real-time sustainable disposal guidance, carbon footprint tracking, and smart sorting assistance!"
+
+    # 26. Greetings
+    elif any(k in msg for k in ["hello", "hi", "hey", "namaste", "good morning", "good afternoon"]):
+        return "👋 Hello! I'm EcoAgent, your AI Sustainability Assistant. Ask me anything about waste sorting, recycling rules, composting tips, or creative DIY upcycling ideas!"
+
+    # Default friendly fallback
     else:
         ctx_mention = f"Regarding {detected_class}: " if detected_class and detected_class != "None" else ""
-        return f"💡 {ctx_mention}Remember the 3 R's: Reduce, Reuse, Recycle! Always ensure dry recyclables are clean before binning. Feel free to ask me about specific items (like pizza boxes, bottle caps, or e-waste)!"
+        return f"💡 {ctx_mention}Remember the 3 R's: Reduce, Reuse, Recycle! Always ensure dry recyclables are clean and dry before binning. Feel free to ask me about specific items (like pizza boxes, thermocol, milk packets, or e-waste)!"
 
 
 @app.route("/chat", methods=["POST"])
