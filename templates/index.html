@@ -2168,18 +2168,6 @@
                 </div>
 
 
-                <div class="chat-prompt-banner" onclick="askEcoAgentAboutItem('{{ prediction }}')">
-                    <div class="chat-prompt-left">
-                        <span class="chat-prompt-icon">✦</span>
-                        <div>
-                            <strong>Have questions about this {{ prediction }} item?</strong>
-                            <p>Ask EcoAgent for personalized cleaning tips, recycling rules, or creative upcycling
-                                ideas!</p>
-                        </div>
-                    </div>
-                    <button type="button" class="chat-prompt-btn">Chat with AI →</button>
-                </div>
-
             </section>
 
             {% endif %}
@@ -2750,75 +2738,6 @@
         });
 
     </script>
-
-    <!-- FLOATING CHAT LAUNCHER -->
-    <button id="chatLauncher" class="chat-launcher" onclick="toggleEcoChat()" aria-label="Open EcoAgent Chat">
-        <div class="launcher-icon">✦</div>
-        <span class="launcher-text">Ask EcoAgent</span>
-        <span class="launcher-badge">AI</span>
-    </button>
-
-    <!-- EXPANDABLE ECOAGENT CHAT DRAWER -->
-    <div id="chatDrawer" class="chat-drawer" role="dialog" aria-label="EcoAgent Chat Window">
-        <div class="chat-header">
-            <div class="chat-header-info">
-                <div class="chat-avatar">♻</div>
-                <div>
-                    <h4>EcoAgent <span>AI</span></h4>
-                    <div class="chat-status"><span class="status-dot"></span> Sustainability Assistant</div>
-                </div>
-            </div>
-            <div class="chat-header-actions">
-                <button type="button" class="chat-icon-btn" onclick="clearEcoChat()"
-                    title="Reset Conversation">↺</button>
-                <button type="button" class="chat-icon-btn" onclick="toggleEcoChat()" title="Close Chat">✕</button>
-            </div>
-        </div>
-
-        <!-- CONTEXT BAR -->
-        <div id="chatContextBar" class="chat-context-bar">
-            <span>🔍 Session:</span>
-            <strong id="chatContextText">General Sustainability Mode</strong>
-        </div>
-
-        <!-- QUICK PROMPT CHIPS -->
-        <div class="chat-chips">
-            <button type="button" class="chip" onclick="sendDrawerQuickPrompt('Can I recycle greasy pizza boxes?')">🍕
-                Pizza box</button>
-            <button type="button" class="chip"
-                onclick="sendDrawerQuickPrompt('Do I need to wash plastic bottles and remove caps?')">🧴 Clean
-                bottle</button>
-            <button type="button" class="chip"
-                onclick="sendDrawerQuickPrompt('How should I dispose of old batteries and e-waste?')">🔋
-                E-Waste</button>
-            <button type="button" class="chip"
-                onclick="sendDrawerQuickPrompt('Give me a creative DIY upcycle idea!')">🎨 DIY idea</button>
-            <button type="button" class="chip"
-                onclick="sendDrawerQuickPrompt('What are the official bin colors and rules?')">🗑 Bin colors</button>
-        </div>
-
-        <!-- MESSAGES LIST -->
-        <div id="chatMessages" class="chat-messages">
-            <div class="chat-msg bot">
-                <div class="msg-avatar">♻</div>
-                <div class="msg-bubble">
-                    <p>Hello! 👋 I'm <strong>EcoAgent</strong>, your intelligent sustainability assistant.</p>
-                    <p style="margin-top:6px;">Upload a waste image above to get classification, or ask me any question
-                        about bins, recycling rules, or creative upcycling!</p>
-                    <span class="msg-time">Just now</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- INPUT BAR (NO FORM RELOAD) -->
-        <div class="chat-input-bar">
-            <input type="text" id="chatInput" placeholder="Ask EcoAgent anything..." autocomplete="off">
-            <button type="button" id="chatSendBtn" class="chat-send-btn" onclick="sendDrawerMessage()"
-                aria-label="Send Message">
-                <span>➤</span>
-            </button>
-        </div>
-    </div>
 
     <script>
         // ECOAGENT CENTRAL CHAT ENGINE
