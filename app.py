@@ -41,6 +41,14 @@ model = load_model("model/waste_classifier.keras")
 
 classes = ["Cardboard", "E-Waste", "Glass", "Metal", "Organic", "Paper", "Plastic"]
 
+# Prioritized list of Gemini models for high availability and quota resilience
+GEMINI_MODELS = [
+    "gemini-flash-lite-latest",
+    "gemini-3.5-flash-lite",
+    "gemini-flash-latest",
+    "gemini-2.5-flash"
+]
+
 default_eco_guide = {
     "Cardboard": {
         "bin": "Blue Bin",
@@ -128,31 +136,34 @@ def get_ai_eco_guide(predicted_class, confidence):
         f"6. 'upcycle_idea': 1 creative DIY upcycle or reuse idea for this waste item\n"
     )
 
-    try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"response_mime_type": "application/json"}
-        }
+    for model_name in GEMINI_MODELS:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"response_mime_type": "application/json"}
+            }
 
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=headers,
-            method="POST"
-        )
-        with urllib.request.urlopen(req, timeout=8) as response:
-            res_data = json.loads(response.read().decode("utf-8"))
-            raw_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
-            dynamic_data = json.loads(raw_text)
-            dynamic_data["is_dynamic"] = True
-            return dynamic_data
-    except Exception as e:
-        print(f"[EcoAgent] Dynamic generation fallback triggered: {e}")
-        guide = default_eco_guide.get(predicted_class, default_eco_guide["Plastic"]).copy()
-        guide["is_dynamic"] = False
-        return guide
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers=headers,
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=8) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                raw_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
+                dynamic_data = json.loads(raw_text)
+                dynamic_data["is_dynamic"] = True
+                return dynamic_data
+        except Exception as e:
+            print(f"[EcoAgent] Dynamic guide ({model_name}) fallback triggered: {e}")
+            continue
+
+    guide = default_eco_guide.get(predicted_class, default_eco_guide["Plastic"]).copy()
+    guide["is_dynamic"] = False
+    return guide
 
 
 @app.route("/")
@@ -212,37 +223,61 @@ def get_ai_chat_response(user_msg, detected_class="None", confidence="None"):
             f"You are EcoAgent, a friendly, expert AI Waste Management Assistant. "
             f"Session Context: {context_str}\n"
             f"User Question: '{user_msg}'\n\n"
-            f"Instructions: Give a concise, direct answer in 2-3 sentences. Specify exact bin colors (Blue = Dry Recyclables, Green = Compost, Red/Black = Hazardous) and a practical sorting or upcycle tip."
+            f"Instructions: Give a concise, direct answer in 2-3 sentences. Support English and Hinglish naturally. "
+            f"Specify exact bin colors (Blue = Dry Recyclables, Green = Compost, Red/Black = Hazardous) and a practical sorting or upcycle tip."
         )
 
-        try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
-            headers = {"Content-Type": "application/json"}
-            payload = {
-                "contents": [{"parts": [{"text": prompt}]}],
-                "generationConfig": {
-                    "maxOutputTokens": 160,
-                    "temperature": 0.2
+        for model_name in GEMINI_MODELS:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+                headers = {"Content-Type": "application/json"}
+                payload = {
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {
+                        "maxOutputTokens": 200,
+                        "temperature": 0.2
+                    }
                 }
-            }
 
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(payload).encode("utf-8"),
-                headers=headers,
-                method="POST"
-            )
-            with urllib.request.urlopen(req, timeout=6) as response:
-                res_data = json.loads(response.read().decode("utf-8"))
-                return res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
-        except Exception as e:
-            print(f"[EcoAgent Chat] API fallback triggered: {e}")
+                req = urllib.request.Request(
+                    url,
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers=headers,
+                    method="POST"
+                )
+                with urllib.request.urlopen(req, timeout=6) as response:
+                    res_data = json.loads(response.read().decode("utf-8"))
+                    return res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
+            except Exception as e:
+                print(f"[EcoAgent Chat] API fallback on {model_name}: {e}")
+                continue
 
     # Offline Intelligent Eco Knowledge Engine (NLP fallback when offline/no API key)
     msg = user_msg.lower()
 
+    # 0. Warning against burning waste
+    if any(k in msg for k in ["burn", "fire", "jalana", "jala sakte", "jala du", "aag"]):
+        return "⚠️ Never burn waste! Burning plastics or treated materials emits toxic carcinogens (dioxins, furans) and hazardous smoke. Always segregate into the Blue Bin (recyclables) or Green Bin (wet compostable waste)."
+
+    # Hinglish & contextual bin queries
+    elif any(k in msg for k in ["kisme", "kaha feku", "kaha daalu", "kaha daale", "feku", "fenku", "daalu", "daale", "fein", "dabba", "dustbin"]):
+        if detected_class and detected_class in default_eco_guide:
+            g = default_eco_guide[detected_class]
+            return f"🗑 For {detected_class}: Isko {g['bin']} me dalein! Tip: {g['tip']}"
+        return "🗑 Segregation Rules:\n• 🟢 Green Bin: Geela / Organic Waste (Compostable)\n• 🔵 Blue Bin: Sookha / Recyclable Waste (Plastic, Paper, Glass, Metal)\n• 🔴 Red/Black Bin: Hazardous / E-Waste & Sanitary Waste."
+
+    # General disposal inquiry (how to dispose / kya kare)
+    elif any(k in msg for k in ["kya kare", "kya karein", "how to dispose", "how to recycle", "what to do", "kaise kare"]):
+        if detected_class and detected_class in default_eco_guide:
+            g = default_eco_guide[detected_class]
+            return f"ℹ️ For {detected_class}:\n• Bin: {g['bin']}\n• Recyclable: {g['recycle']} | Compostable: {g['compost']}\n• Disposal Tip: {g['tip']}\n• DIY Upcycle: {g['upcycle_idea']}"
+
+    # Why recycle / kyun / fayda
+    elif any(k in msg for k in ["why", "kyu", "kyun", "fayda", "benefit"]):
+        return "🌍 Recycling preserves natural resources, reduces landfill contamination, and cuts greenhouse gas emissions. For instance, recycling 1 kg of plastic saves ~1.5 kg of CO2!"
+
     # 1. Food Contaminated Paper / Pizza
-    if any(k in msg for k in ["pizza", "greas", "oil on paper", "cheese box"]):
+    elif any(k in msg for k in ["pizza", "greas", "oil on paper", "cheese box"]):
         return "🍕 Greasy pizza boxes or paper soaked in oil/cheese cannot be recycled with clean paper because grease ruins paper pulp! Tear off the clean dry lid for the Blue Recycling Bin, and place the greasy portion into the Green Compost/Wet Waste Bin."
 
     # 2. Thermocol & Styrofoam
@@ -360,10 +395,18 @@ def get_ai_chat_response(user_msg, detected_class="None", confidence="None"):
     elif any(k in msg for k in ["hello", "hi", "hey", "namaste", "good morning", "good afternoon"]):
         return "👋 Hello! I'm EcoAgent, your AI Sustainability Assistant. Ask me anything about waste sorting, recycling rules, composting tips, or creative DIY upcycling ideas!"
 
-    # Default friendly fallback
+    # Default smart fallback (context-aware disposal guidance)
     else:
-        ctx_mention = f"Regarding {detected_class}: " if detected_class and detected_class != "None" else ""
-        return f"💡 {ctx_mention}Remember the 3 R's: Reduce, Reuse, Recycle! Always ensure dry recyclables are clean and dry before binning. Feel free to ask me about specific items (like pizza boxes, thermocol, milk packets, or e-waste)!"
+        if detected_class and detected_class in default_eco_guide:
+            g = default_eco_guide[detected_class]
+            return (
+                f"💡 For scanned {detected_class}:\n"
+                f"• Bin: {g['bin']} (Recycle: {g['recycle']}, Compost: {g['compost']})\n"
+                f"• Disposal Tip: {g['tip']}\n"
+                f"• Creative Upcycle: {g['upcycle_idea']}"
+            )
+        else:
+            return "💡 Remember the 3 R's: Reduce, Reuse, Recycle! Always ensure dry recyclables are clean and dry before binning. Feel free to ask me about specific items (like pizza boxes, thermocol, milk packets, or e-waste)!"
 
 
 @app.route("/chat", methods=["POST"])
