@@ -129,7 +129,7 @@ def get_ai_eco_guide(predicted_class, confidence):
     )
 
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
         headers = {"Content-Type": "application/json"}
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
@@ -142,7 +142,7 @@ def get_ai_eco_guide(predicted_class, confidence):
             headers=headers,
             method="POST"
         )
-        with urllib.request.urlopen(req, timeout=4) as response:
+        with urllib.request.urlopen(req, timeout=8) as response:
             res_data = json.loads(response.read().decode("utf-8"))
             raw_text = res_data["candidates"][0]["content"]["parts"][0]["text"]
             dynamic_data = json.loads(raw_text)
@@ -214,7 +214,7 @@ def get_ai_chat_response(user_msg, detected_class="None", confidence="None"):
         )
 
         try:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}"
             headers = {"Content-Type": "application/json"}
             payload = {"contents": [{"parts": [{"text": prompt}]}]}
 
@@ -224,7 +224,7 @@ def get_ai_chat_response(user_msg, detected_class="None", confidence="None"):
                 headers=headers,
                 method="POST"
             )
-            with urllib.request.urlopen(req, timeout=5) as response:
+            with urllib.request.urlopen(req, timeout=8) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 return res_data["candidates"][0]["content"]["parts"][0]["text"].strip()
         except Exception as e:
